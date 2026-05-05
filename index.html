@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="초등학생이 불친절한 키오스크를 체험하며 배리어프리 설계의 필요성을 배우는 웹 활동"
+    />
+    <title>극한 체험! 이상한 키오스크 월드</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="station-rail" aria-label="키오스크 체험 선택">
+        <div class="rail-brand">
+          <span class="brand-mark">K</span>
+          <span>이상한 키오스크</span>
+        </div>
+        <nav id="stationRail" class="rail-list"></nav>
+        <button id="summaryRailButton" class="rail-summary" type="button">돌아보기</button>
+      </aside>
+
+      <main class="main-stage">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">극한 체험</p>
+            <h1>이상한 키오스크 월드</h1>
+          </div>
+          <div class="progress-box" aria-label="체험 진행률">
+            <span id="progressText">0 / 5 완료</span>
+            <div class="progress-track">
+              <span id="progressBar"></span>
+            </div>
+          </div>
+        </header>
+
+        <section id="homeView" class="view is-active" aria-labelledby="homeTitle">
+          <div class="home-band">
+            <div>
+              <p class="section-kicker">장벽을 찾아라</p>
+              <h2 id="homeTitle">누구에게나 쉬운 키오스크일까?</h2>
+              <p>
+                빠른 화면, 작은 버튼, 어려운 말, 흐린 색, 소리 안내만 있는 키오스크를
+                직접 체험하고 더 나은 설계를 골라 봅니다.
+              </p>
+            </div>
+            <button id="startButton" class="primary-action" type="button">첫 체험 시작</button>
+          </div>
+
+          <div id="stationCards" class="station-grid"></div>
+        </section>
+
+        <section id="stationView" class="view" aria-labelledby="stationTitle">
+          <div class="station-layout">
+            <section class="experience-zone" aria-label="키오스크 체험 화면">
+              <div class="station-header">
+                <div>
+                  <p id="stationKicker" class="section-kicker">체험</p>
+                  <h2 id="stationTitle"></h2>
+                  <p id="stationMission" class="mission-text"></p>
+                </div>
+                <div class="mode-switch" role="group" aria-label="체험 모드">
+                  <button id="challengeMode" class="mode-button is-active" type="button">어려운 모드</button>
+                  <button id="kindMode" class="mode-button" type="button">개선 모드</button>
+                </div>
+              </div>
+
+              <div id="simulator" class="kiosk-frame" aria-live="polite"></div>
+            </section>
+
+            <aside class="reflection-panel" aria-label="배리어프리 생각 정리">
+              <p class="section-kicker">발견 기록</p>
+              <h3>무엇이 장벽이었나요?</h3>
+              <div id="insightText" class="insight-box"></div>
+              <div id="barrierLog" class="barrier-log"></div>
+            </aside>
+          </div>
+        </section>
+
+        <section id="summaryView" class="view" aria-labelledby="summaryTitle">
+          <div class="summary-band">
+            <p class="section-kicker">마무리</p>
+            <h2 id="summaryTitle">좋은 키오스크 설계 원칙</h2>
+            <div id="summaryList" class="summary-list"></div>
+            <button id="restartButton" class="secondary-action" type="button">처음으로</button>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
