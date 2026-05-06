@@ -546,7 +546,6 @@ function renderTimerStation(root, mode) {
       key: "menu",
       title: "메뉴를 골라 주세요",
       subtitle: "치즈버거를 선택하면 다음 단계로 이동합니다.",
-      guide: isKind ? "시간 제한 없이 메뉴 설명과 가격을 확인할 수 있습니다." : "3초 안에 골라야 해서 메뉴를 비교하기 어렵습니다.",
       correct: "cheese-set",
       items: [
         { id: "bulgogi", label: "불고기버거", desc: "달콤한 간장 소스", price: 5200, visual: "burger" },
@@ -560,7 +559,6 @@ function renderTimerStation(root, mode) {
       key: "side",
       title: "사이드를 선택해 주세요",
       subtitle: "세트에 포함할 사이드를 고릅니다.",
-      guide: isKind ? "현재 단계와 이전 선택이 장바구니에 계속 표시됩니다." : "조금만 늦어도 첫 화면으로 돌아갑니다.",
       correct: "fries",
       items: [
         { id: "salad", label: "샐러드", desc: "상큼한 채소", price: 0, visual: "salad" },
@@ -574,7 +572,6 @@ function renderTimerStation(root, mode) {
       key: "drink",
       title: "음료를 선택해 주세요",
       subtitle: "세트에 포함할 콜라(M)를 고릅니다.",
-      guide: isKind ? "선택한 버거와 사이드를 보면서 음료까지 차례로 고를 수 있습니다." : "사이드 다음에도 음료 단계가 남아 있어 더 급하게 느껴집니다.",
       correct: "cola",
       items: [
         { id: "cola", label: "콜라(M)", desc: "기본 탄산음료", price: 0, visual: "cup" },
@@ -588,7 +585,6 @@ function renderTimerStation(root, mode) {
       key: "ice",
       title: "얼음 양을 선택해 주세요",
       subtitle: "콜라(M)에 넣을 얼음 양을 고릅니다.",
-      guide: isKind ? "음료 이름과 얼음 양이 나뉘어 있어 주문 조건을 하나씩 확인할 수 있습니다." : "음료를 고른 뒤 얼음 양까지 다시 고르는 과정이 주문을 더 복잡하게 만듭니다.",
       correct: "ice-less",
       items: [
         { id: "ice-none", label: "얼음 없음", desc: "얼음을 넣지 않음", price: 0, mark: "없" },
@@ -602,7 +598,6 @@ function renderTimerStation(root, mode) {
       key: "payment",
       title: "결제 방법을 선택해 주세요",
       subtitle: "카드 결제를 선택하면 주문이 완료됩니다.",
-      guide: isKind ? "결제 전 주문 내역을 다시 확인할 수 있습니다." : "시간 압박 때문에 결제 방법도 급하게 고르게 됩니다.",
       correct: "card",
       items: [
         { id: "cash", label: "현금 결제", desc: "직원 호출 필요", price: 0, mark: "현" },
