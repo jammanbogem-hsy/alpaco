@@ -813,8 +813,10 @@ button {
   place-items: center;
 }
 
+.start-art .product-image-frame,
 .start-art .food-art,
 .start-art .text-art,
+.promo-art .product-image-frame,
 .promo-art .food-art,
 .promo-art .text-art {
   transform: scale(1.18);
@@ -1288,6 +1290,12 @@ button {
   width: 100%;
   height: 100%;
   object-fit: contain;
+}
+
+.hero-product-image {
+  width: 96px;
+  height: 96px;
+  background: #fff4cc;
 }
 
 .text-art {
@@ -1957,8 +1965,10 @@ button {
     padding: 18px;
   }
 
+  .start-art .product-image-frame,
   .start-art .food-art,
   .start-art .text-art,
+  .promo-art .product-image-frame,
   .promo-art .food-art,
   .promo-art .text-art {
     transform: scale(0.92);

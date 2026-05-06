@@ -321,14 +321,18 @@ const productImages = {
   wrap: "assets/menu/chicken-wrap.png"
 };
 
+function productImageMarkup(src, className = "") {
+  return `
+    <span class="product-image-frame ${className}" aria-hidden="true">
+      <img src="${src}" alt="" loading="lazy">
+    </span>
+  `;
+}
+
 function productArt(item) {
   const imageSrc = productImages[item.id];
   if (imageSrc) {
-    return `
-      <span class="product-image-frame" aria-hidden="true">
-        <img src="${imageSrc}" alt="" loading="lazy">
-      </span>
-    `;
+    return productImageMarkup(imageSrc);
   }
   return item.visual ? foodArt(item.visual) : `<span class="text-art">${item.mark || item.label.slice(0, 1)}</span>`;
 }
@@ -465,7 +469,7 @@ function kioskHeroFor(stationId) {
       title: "오늘의 추천 메뉴",
       name: "치즈버거",
       copy: "치즈버거, 감자튀김, 콜라(M), 얼음 적게, 카드 결제까지 해보세요.",
-      art: foodArt("combo")
+      art: productImageMarkup(productImages["cheese-set"], "hero-product-image")
     },
     tiny: {
       brand: "알파카페",
@@ -621,12 +625,10 @@ function renderTimerStation(root, mode) {
   });
 
   const pressureSchedule = [
-    { at: 2.3, side: "left", level: 1, text: (label) => `${label}부터 빨리 눌러요` },
-    { at: 1.8, side: "right", level: 1, text: () => "뒤에 손님 기다려요" },
-    { at: 1.2, side: "left", level: 2, text: () => "시간 얼마 안 남았어요" },
-    { at: 0.8, side: "right", level: 2, text: (label) => `${label} 아직인가요?` },
-    { at: 0.4, side: "left", level: 3, text: () => "처음으로 돌아갑니다!" },
-    { at: 0.3, side: "right", level: 3, text: () => "지금 안 누르면 초기화!" }
+    { at: 2.4, side: "left", level: 1, text: (label) => `${label}부터 빨리 눌러요` },
+    { at: 1.7, side: "right", level: 1, text: () => "뒤에 손님 기다려요" },
+    { at: 1.0, side: "left", level: 2, text: () => "시간 얼마 안 남았어요" },
+    { at: 0.3, side: "right", level: 3, text: () => "곧 초기화돼요!" }
   ];
 
   function pressureBubblesMarkup() {
