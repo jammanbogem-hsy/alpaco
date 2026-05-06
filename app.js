@@ -443,7 +443,7 @@ function kioskHeroFor(stationId) {
       brand: "모두버거",
       title: "오늘의 추천 메뉴",
       name: "치즈버거",
-      copy: "치즈버거, 감자튀김, 콜라(M), 얼음 적게를 주문해 보세요.",
+      copy: "치즈버거, 감자튀김, 콜라(M), 얼음 적게, 카드 결제까지 해보세요.",
       art: foodArt("combo")
     },
     tiny: {
@@ -603,8 +603,44 @@ function renderTimerStation(root, mode) {
     window.clearInterval(timer);
   });
 
+  function pressureBubbleState(seconds, label) {
+    const level = seconds <= 0.7 ? 3 : seconds <= 1.4 ? 2 : seconds <= 2.2 ? 1 : 0;
+    const messages = [
+      ["", ""],
+      [`${label}부터 빨리 눌러요`, "뒤에 손님 기다려요"],
+      ["시간 얼마 안 남았어요", `${label} 아직인가요?`],
+      ["처음으로 돌아갑니다!", "지금 안 누르면 초기화!"]
+    ];
+
+    return {
+      level,
+      left: messages[level][0],
+      right: messages[level][1]
+    };
+  }
+
+  function pressureBubblesMarkup(pressure) {
+    return `
+      <div class="pressure-bubbles" data-pressure-bubbles="true" data-level="${pressure.level}" aria-hidden="true">
+        <span class="pressure-bubble pressure-bubble-left" data-pressure-message="left">${pressure.left}</span>
+        <span class="pressure-bubble pressure-bubble-right" data-pressure-message="right">${pressure.right}</span>
+      </div>
+    `;
+  }
+
+  function updatePressureBubbles() {
+    const current = steps[step];
+    const container = root.querySelector("[data-pressure-bubbles]");
+    if (!current || !container) return;
+    const pressure = pressureBubbleState(timeLeft, current.label);
+    container.dataset.level = String(pressure.level);
+    container.querySelector('[data-pressure-message="left"]').textContent = pressure.left;
+    container.querySelector('[data-pressure-message="right"]').textContent = pressure.right;
+  }
+
   function draw() {
     const current = steps[step];
+    const pressure = pressureBubbleState(timeLeft, current.label);
     root.innerHTML = kioskShell({
       brand: "모두버거",
       title: current.title,
@@ -618,6 +654,7 @@ function renderTimerStation(root, mode) {
       cartItems: selectedCartItems(order),
       className: isKind ? "friendly-kiosk" : "pressure-kiosk",
       body: `
+        ${!isKind ? pressureBubblesMarkup(pressure) : ""}
         <div class="category-tabs" aria-label="메뉴 분류">
           <span class="category-tab is-active">${current.label}</span>
           <span class="category-tab">추천</span>
@@ -664,6 +701,7 @@ function renderTimerStation(root, mode) {
       timeLeft -= 0.1;
       const readout = root.querySelector("#timerReadout");
       if (readout) readout.textContent = `${Math.max(timeLeft, 0).toFixed(1)}초`;
+      updatePressureBubbles();
       if (timeLeft <= 0) {
         window.clearInterval(timer);
         recordBarrier("생각할 시간이 부족해 주문 화면이 처음으로 돌아갔습니다.");

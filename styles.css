@@ -1058,6 +1058,74 @@ button {
   font-size: 0.86rem;
 }
 
+.pressure-bubbles {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  min-height: 42px;
+  gap: 8px;
+  align-items: center;
+}
+
+.pressure-bubble {
+  display: inline-grid;
+  max-width: 230px;
+  min-width: 0;
+  min-height: 34px;
+  align-items: center;
+  padding: 7px 10px;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  background: #fff4bd;
+  color: var(--ink);
+  font-size: 0.74rem;
+  font-weight: 900;
+  line-height: 1.2;
+  opacity: 0;
+  overflow-wrap: anywhere;
+  box-shadow: 3px 3px 0 var(--line);
+  transform: translateY(5px) scale(0.96);
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease,
+    background 160ms ease;
+}
+
+.pressure-bubble-left {
+  justify-self: start;
+  border-bottom-left-radius: 7px;
+}
+
+.pressure-bubble-right {
+  justify-self: end;
+  border-bottom-right-radius: 7px;
+  background: #ffe3eb;
+}
+
+.pressure-bubbles[data-level="1"] .pressure-bubble,
+.pressure-bubbles[data-level="2"] .pressure-bubble,
+.pressure-bubbles[data-level="3"] .pressure-bubble {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.pressure-bubbles[data-level="3"] .pressure-bubble {
+  background: var(--coral);
+  color: #ffffff;
+  animation: pressurePulse 420ms ease-in-out infinite;
+}
+
+@keyframes pressurePulse {
+  50% {
+    transform: translateY(0) scale(1.03);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pressure-bubbles[data-level="3"] .pressure-bubble {
+    animation: none;
+  }
+}
+
 .category-tabs {
   display: flex;
   flex-wrap: wrap;
