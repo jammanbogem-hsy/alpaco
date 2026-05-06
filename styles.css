@@ -1269,6 +1269,7 @@ button {
   font-size: 0.92rem;
 }
 
+.product-image-frame,
 .food-art,
 .text-art {
   position: relative;
@@ -1280,6 +1281,13 @@ button {
   border-radius: 8px;
   background: #fff4cc;
   overflow: hidden;
+}
+
+.product-image-frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .text-art {
@@ -1524,6 +1532,7 @@ button {
   box-shadow: none;
 }
 
+.tiny-products .product-image-frame,
 .tiny-products .food-art,
 .tiny-products .text-art {
   width: 32px;
@@ -1984,6 +1993,7 @@ button {
     min-height: 108px;
   }
 
+  .product-image-frame,
   .food-art,
   .text-art {
     width: 60px;

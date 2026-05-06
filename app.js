@@ -314,6 +314,25 @@ function foodArt(type) {
   return `<span class="food-art ${type}" aria-hidden="true"><span></span><span></span><span></span></span>`;
 }
 
+const productImages = {
+  bulgogi: "assets/menu/bulgogi-burger.png",
+  "cheese-set": "assets/menu/cheese-burger.png",
+  shrimp: "assets/menu/shrimp-burger.png",
+  wrap: "assets/menu/chicken-wrap.png"
+};
+
+function productArt(item) {
+  const imageSrc = productImages[item.id];
+  if (imageSrc) {
+    return `
+      <span class="product-image-frame" aria-hidden="true">
+        <img src="${imageSrc}" alt="" loading="lazy">
+      </span>
+    `;
+  }
+  return item.visual ? foodArt(item.visual) : `<span class="text-art">${item.mark || item.label.slice(0, 1)}</span>`;
+}
+
 function stepDots(labels, activeIndex) {
   return `
     <ol class="order-steps" aria-label="주문 단계">
@@ -333,7 +352,7 @@ function stepDots(labels, activeIndex) {
 function productCard(item, attrs = "", extraClass = "") {
   const desc = item.desc ? `<small>${item.desc}</small>` : "";
   const price = typeof item.price === "number" ? `<strong>${formatWon(item.price)}</strong>` : "";
-  const art = item.visual ? foodArt(item.visual) : `<span class="text-art">${item.mark || item.label.slice(0, 1)}</span>`;
+  const art = productArt(item);
 
   return `
     <button class="product-card ${extraClass}" type="button" ${attrs}>
