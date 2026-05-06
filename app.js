@@ -595,6 +595,7 @@ function renderTimerStation(root, mode) {
   ];
 
   const order = {};
+  let pressureComplaints = [];
   let step = 0;
   let timeLeft = isKind ? 0 : 3;
   let timer = 0;
@@ -605,44 +606,52 @@ function renderTimerStation(root, mode) {
     window.clearInterval(timer);
   });
 
-  function pressureBubbleState(seconds, label) {
-    const level = seconds <= 0.7 ? 3 : seconds <= 1.4 ? 2 : seconds <= 2.2 ? 1 : 0;
-    const messages = [
-      ["", ""],
-      [`${label}부터 빨리 눌러요`, "뒤에 손님 기다려요"],
-      ["시간 얼마 안 남았어요", `${label} 아직인가요?`],
-      ["처음으로 돌아갑니다!", "지금 안 누르면 초기화!"]
-    ];
+  const pressureSchedule = [
+    { at: 2.3, side: "left", level: 1, text: (label) => `${label}부터 빨리 눌러요` },
+    { at: 1.8, side: "right", level: 1, text: () => "뒤에 손님 기다려요" },
+    { at: 1.2, side: "left", level: 2, text: () => "시간 얼마 안 남았어요" },
+    { at: 0.8, side: "right", level: 2, text: (label) => `${label} 아직인가요?` },
+    { at: 0.4, side: "left", level: 3, text: () => "처음으로 돌아갑니다!" },
+    { at: 0.3, side: "right", level: 3, text: () => "지금 안 누르면 초기화!" }
+  ];
 
-    return {
-      level,
-      left: messages[level][0],
-      right: messages[level][1]
-    };
-  }
-
-  function pressureBubblesMarkup(pressure) {
+  function pressureBubblesMarkup() {
     return `
-      <div class="pressure-bubbles" data-pressure-bubbles="true" data-level="${pressure.level}" aria-hidden="true">
-        <span class="pressure-bubble pressure-bubble-left" data-pressure-message="left">${pressure.left}</span>
-        <span class="pressure-bubble pressure-bubble-right" data-pressure-message="right">${pressure.right}</span>
+      <div class="pressure-bubbles" data-pressure-bubbles="true" aria-hidden="true">
+        <div class="pressure-stack pressure-stack-left" data-pressure-stack="left">${pressureStackMarkup("left")}</div>
+        <div class="pressure-stack pressure-stack-right" data-pressure-stack="right">${pressureStackMarkup("right")}</div>
       </div>
     `;
+  }
+
+  function pressureStackMarkup(side) {
+    return pressureComplaints
+      .filter((item) => item.side === side)
+      .map((item) => `<span class="pressure-bubble pressure-level-${item.level}">${item.text}</span>`)
+      .join("");
   }
 
   function updatePressureBubbles() {
     const current = steps[step];
     const container = root.querySelector("[data-pressure-bubbles]");
     if (!current || !container) return;
-    const pressure = pressureBubbleState(timeLeft, current.label);
-    container.dataset.level = String(pressure.level);
-    container.querySelector('[data-pressure-message="left"]').textContent = pressure.left;
-    container.querySelector('[data-pressure-message="right"]').textContent = pressure.right;
+    pressureSchedule.forEach((item, index) => {
+      const id = `${step}-${index}`;
+      if (timeLeft <= item.at && !pressureComplaints.some((complaint) => complaint.id === id)) {
+        pressureComplaints.push({
+          id,
+          side: item.side,
+          level: item.level,
+          text: item.text(current.label)
+        });
+      }
+    });
+    container.querySelector('[data-pressure-stack="left"]').innerHTML = pressureStackMarkup("left");
+    container.querySelector('[data-pressure-stack="right"]').innerHTML = pressureStackMarkup("right");
   }
 
   function draw() {
     const current = steps[step];
-    const pressure = pressureBubbleState(timeLeft, current.label);
     root.innerHTML = kioskShell({
       brand: "모두버거",
       title: current.title,
@@ -655,7 +664,7 @@ function renderTimerStation(root, mode) {
       guide: current.guide,
       cartItems: selectedCartItems(order),
       className: isKind ? "friendly-kiosk" : "pressure-kiosk",
-      ambient: !isKind ? pressureBubblesMarkup(pressure) : "",
+      ambient: !isKind ? pressureBubblesMarkup() : "",
       body: `
         <div class="category-tabs" aria-label="메뉴 분류">
           <span class="category-tab is-active">${current.label}</span>
@@ -709,6 +718,7 @@ function renderTimerStation(root, mode) {
         recordBarrier("생각할 시간이 부족해 주문 화면이 처음으로 돌아갔습니다.");
         step = 0;
         Object.keys(order).forEach((key) => delete order[key]);
+        pressureComplaints = [];
         timeLeft = 3;
         draw();
         startClock();

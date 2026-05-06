@@ -1072,10 +1072,25 @@ button {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   grid-row: 1;
   width: min(100%, 540px);
-  gap: 10px;
-  align-items: center;
+  gap: 12px;
+  align-items: end;
   justify-self: center;
   pointer-events: none;
+}
+
+.pressure-stack {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.pressure-stack-left {
+  align-items: flex-start;
+}
+
+.pressure-stack-right {
+  align-items: flex-end;
 }
 
 .pressure-bubble {
@@ -1092,38 +1107,42 @@ button {
   font-size: clamp(0.95rem, 1.2vw, 1.1rem);
   font-weight: 900;
   line-height: 1.2;
-  opacity: 0;
+  opacity: 1;
   overflow-wrap: anywhere;
   box-shadow: 5px 5px 0 var(--line);
-  transform: translateY(5px) scale(0.96);
-  transition:
-    opacity 160ms ease,
-    transform 160ms ease,
-    background 160ms ease;
+  animation: pressurePop 160ms ease-out;
 }
 
-.pressure-bubble-left {
-  justify-self: start;
+.pressure-stack-left .pressure-bubble {
   border-bottom-right-radius: 7px;
 }
 
-.pressure-bubble-right {
-  justify-self: end;
+.pressure-stack-right .pressure-bubble {
   border-bottom-left-radius: 7px;
   background: #ffe3eb;
 }
 
-.pressure-bubbles[data-level="1"] .pressure-bubble,
-.pressure-bubbles[data-level="2"] .pressure-bubble,
-.pressure-bubbles[data-level="3"] .pressure-bubble {
-  opacity: 1;
-  transform: translateY(0) scale(1);
+.pressure-stack-left .pressure-bubble:nth-child(even) {
+  margin-left: 18px;
 }
 
-.pressure-bubbles[data-level="3"] .pressure-bubble {
+.pressure-stack-right .pressure-bubble:nth-child(even) {
+  margin-right: 18px;
+}
+
+.pressure-level-3 {
   background: var(--coral);
   color: #ffffff;
-  animation: pressurePulse 420ms ease-in-out infinite;
+  animation:
+    pressurePop 160ms ease-out,
+    pressurePulse 420ms ease-in-out 160ms infinite;
+}
+
+@keyframes pressurePop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.94);
+  }
 }
 
 @keyframes pressurePulse {
@@ -1133,7 +1152,8 @@ button {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pressure-bubbles[data-level="3"] .pressure-bubble {
+  .pressure-bubble,
+  .pressure-level-3 {
     animation: none;
   }
 }
@@ -1155,14 +1175,16 @@ button {
     justify-self: center;
   }
 
-  body.kiosk-focus-mode .kiosk-stage.has-pressure-bubbles .pressure-bubble-left {
+  body.kiosk-focus-mode .kiosk-stage.has-pressure-bubbles .pressure-stack-left {
     grid-column: 1;
     justify-self: end;
+    align-items: flex-end;
   }
 
-  body.kiosk-focus-mode .kiosk-stage.has-pressure-bubbles .pressure-bubble-right {
+  body.kiosk-focus-mode .kiosk-stage.has-pressure-bubbles .pressure-stack-right {
     grid-column: 3;
     justify-self: start;
+    align-items: flex-start;
   }
 }
 
