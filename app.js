@@ -4,7 +4,7 @@ const stations = [
     badge: "3초",
     title: "3초 뒤 사라지는 주문 키오스크",
     short: "고민할 시간이 부족한 화면",
-    mission: "치즈버거 세트, 감자튀김, 카드 결제까지 완료해 보세요.",
+    mission: "치즈버거, 감자튀김, 콜라, 카드 결제까지 완료해 보세요.",
     kicker: "시간 장벽",
     insight: "충분한 시간, 멈춤 버튼, 이전 단계로 돌아가기 버튼이 있어야 합니다.",
     principle: "시간을 넉넉하게",
@@ -442,7 +442,7 @@ function kioskHeroFor(stationId) {
     timer: {
       brand: "모두버거",
       title: "오늘의 추천 메뉴",
-      name: "치즈버거 세트",
+      name: "치즈버거",
       copy: "버거, 감자튀김, 음료를 한 번에 주문해 보세요.",
       art: foodArt("combo")
     },
@@ -524,12 +524,12 @@ function renderTimerStation(root, mode) {
       label: "메뉴",
       key: "menu",
       title: "메뉴를 골라 주세요",
-      subtitle: "버거 세트를 선택하면 다음 단계로 이동합니다.",
+      subtitle: "치즈버거를 선택하면 다음 단계로 이동합니다.",
       guide: isKind ? "시간 제한 없이 메뉴 설명과 가격을 확인할 수 있습니다." : "3초 안에 골라야 해서 메뉴를 비교하기 어렵습니다.",
       correct: "cheese-set",
       items: [
         { id: "bulgogi", label: "불고기버거", desc: "달콤한 간장 소스", price: 5200, visual: "burger" },
-        { id: "cheese-set", label: "치즈버거 세트", desc: "버거, 감자튀김, 음료", price: 7900, visual: "combo" },
+        { id: "cheese-set", label: "치즈버거", desc: "기본 버거", price: 5200, visual: "burger" },
         { id: "shrimp", label: "새우버거", desc: "바삭한 새우 패티", price: 6100, visual: "burger" },
         { id: "wrap", label: "치킨랩", desc: "또띠아와 치킨", price: 5400, visual: "wrap" }
       ]
@@ -546,6 +546,20 @@ function renderTimerStation(root, mode) {
         { id: "fries", label: "감자튀김", desc: "기본 사이드", price: 0, visual: "fries" },
         { id: "stick", label: "치즈스틱", desc: "추가 800원", price: 800, visual: "stick" },
         { id: "corn", label: "콘샐러드", desc: "달콤한 옥수수", price: 0, visual: "salad" }
+      ]
+    },
+    {
+      label: "음료",
+      key: "drink",
+      title: "음료를 선택해 주세요",
+      subtitle: "세트에 포함할 음료를 고릅니다.",
+      guide: isKind ? "선택한 버거와 사이드를 보면서 음료까지 차례로 고를 수 있습니다." : "사이드 다음에도 음료 단계가 남아 있어 더 급하게 느껴집니다.",
+      correct: "cola",
+      items: [
+        { id: "cola", label: "콜라", desc: "기본 음료", price: 0, visual: "cup" },
+        { id: "zero-cola", label: "제로콜라", desc: "당류 0g", price: 0, visual: "cup" },
+        { id: "ade", label: "레몬에이드", desc: "추가 700원", price: 700, visual: "cup" },
+        { id: "water", label: "생수", desc: "시원한 물", price: 0, visual: "cup" }
       ]
     },
     {
@@ -942,7 +956,7 @@ function renderContrastStation(root, mode) {
   const isKind = mode === "kind";
   let coupon = "";
   const baseItems = [
-    { label: "치즈버거 세트", price: 7900 },
+    { label: "치즈버거", price: 7900 },
     { label: "감자튀김", price: 0 }
   ];
   const coupons = [
