@@ -59,6 +59,7 @@ const stations = [
 const state = {
   currentId: null,
   mode: "challenge",
+  kioskStarted: false,
   completed: new Set(),
   attempts: {},
   barriers: []
@@ -172,6 +173,7 @@ function renderCards() {
 function openStation(id) {
   state.currentId = id;
   state.mode = "challenge";
+  state.kioskStarted = false;
   showView("station");
   renderStation();
 }
@@ -197,7 +199,11 @@ function renderStation() {
     audio: renderAudioStation
   };
 
-  renderers[station.id](els.simulator, state.mode);
+  if (!state.kioskStarted) {
+    renderKioskStart(els.simulator, station, state.mode);
+  } else {
+    renderers[station.id](els.simulator, state.mode);
+  }
   renderProgress();
 }
 
@@ -359,36 +365,56 @@ function cartPanel(items, actionLabel = "결제하기") {
 
 function kioskShell({ brand, title, subtitle, mode, status, timer, steps, activeStep, body, cartItems, guide, className = "" }) {
   const modeLabel = mode === "kind" ? "개선 모드" : "어려운 모드";
+  const station = currentStation();
+  const hero = kioskHeroFor(station?.id || "timer");
   return `
-    <div class="kiosk-screen ${mode === "challenge" ? "challenge" : ""}">
-      <div class="real-kiosk ${className}">
-        <header class="kiosk-brandbar">
-          <div class="brand-stack">
-            <span class="store-logo">${brand.slice(0, 1)}</span>
-            <span>
-              <b>${brand}</b>
-              <small>${modeLabel}</small>
-            </span>
-          </div>
-          <div class="kiosk-status">
-            <span>${status}</span>
-            ${timer ? `<strong id="timerReadout">${timer}</strong>` : ""}
-          </div>
-        </header>
-        <section class="kiosk-order-main">
-          <div class="order-board">
-            <div class="order-heading">
-              <div>
-                <h3>${title}</h3>
-                <p>${subtitle}</p>
+    <div class="kiosk-stage ${mode === "challenge" ? "challenge" : ""}">
+      <div class="kiosk-hardware">
+        <div class="kiosk-device-screen">
+          <div class="real-kiosk ${className}">
+            <header class="kiosk-brandbar">
+              <div class="brand-stack">
+                <span class="store-logo">${brand.slice(0, 1)}</span>
+                <span>
+                  <b>${brand}</b>
+                  <small>${modeLabel}</small>
+                </span>
               </div>
-              ${steps ? stepDots(steps, activeStep) : ""}
-            </div>
-            ${guide ? `<p class="kiosk-help real-help">${guide}</p>` : ""}
-            ${body}
+              <div class="kiosk-status">
+                <span>${status}</span>
+                ${timer ? `<strong id="timerReadout">${timer}</strong>` : ""}
+              </div>
+            </header>
+            <section class="kiosk-promo">
+              <div>
+                <p>${hero.title}</p>
+                <h3>${hero.name}</h3>
+                <span>${hero.copy}</span>
+              </div>
+              <div class="promo-art">${hero.art}</div>
+            </section>
+            <section class="kiosk-order-main">
+              <div class="order-board">
+                <div class="order-heading">
+                  <div>
+                    <h3>${title}</h3>
+                    <p>${subtitle}</p>
+                  </div>
+                  ${steps ? stepDots(steps, activeStep) : ""}
+                </div>
+                ${guide ? `<p class="kiosk-help real-help">${guide}</p>` : ""}
+                ${body}
+              </div>
+              ${cartPanel(cartItems)}
+            </section>
+            <footer class="kiosk-homebar">
+              <span>처음으로</span>
+              <span>직원 호출</span>
+              <span>도움말</span>
+            </footer>
           </div>
-          ${cartPanel(cartItems)}
-        </section>
+        </div>
+        <div class="kiosk-hardware-slot" aria-hidden="true"></div>
       </div>
     </div>
   `;
@@ -396,6 +422,86 @@ function kioskShell({ brand, title, subtitle, mode, status, timer, steps, active
 
 function selectedCartItems(values) {
   return Object.values(values).filter(Boolean);
+}
+
+function kioskHeroFor(stationId) {
+  const heroes = {
+    timer: {
+      brand: "모두버거",
+      title: "오늘의 추천 메뉴",
+      name: "치즈버거 세트",
+      copy: "버거, 감자튀김, 음료를 한 번에 주문해 보세요.",
+      art: foodArt("combo")
+    },
+    tiny: {
+      brand: "알파카페",
+      title: "따뜻한 음료 추천",
+      name: "두유 라떼",
+      copy: "온도와 포장 옵션을 차례대로 선택합니다.",
+      art: foodArt("cup")
+    },
+    alien: {
+      brand: "모두티",
+      title: "오늘의 차 메뉴",
+      name: "따뜻한 보리차",
+      copy: "쉬운 말과 어려운 코드 메뉴를 비교합니다.",
+      art: foodArt("cup")
+    },
+    contrast: {
+      brand: "모두버거",
+      title: "결제 전 쿠폰 확인",
+      name: "1,000원 할인",
+      copy: "쿠폰과 결제 화면의 보기 쉬움을 비교합니다.",
+      art: `<span class="text-art">%</span>`
+    },
+    audio: {
+      brand: "모두병원",
+      title: "번호표 접수",
+      name: "소아과 접수",
+      copy: "음성 안내와 화면 안내를 비교합니다.",
+      art: `<span class="text-art">접</span>`
+    }
+  };
+  return heroes[stationId] || heroes.timer;
+}
+
+function renderKioskStart(root, station, mode) {
+  const hero = kioskHeroFor(station.id);
+  const modeLabel = mode === "kind" ? "개선 모드" : "어려운 모드";
+  root.innerHTML = `
+    <div class="kiosk-stage">
+      <div class="kiosk-hardware start-hardware">
+        <div class="kiosk-device-screen start-device-screen">
+          <header class="start-hero">
+            <div class="start-copy">
+              <p>${hero.brand}</p>
+              <h3>${hero.title}</h3>
+              <strong>${hero.name}</strong>
+              <span>${hero.copy}</span>
+            </div>
+            <div class="start-art">${hero.art}</div>
+          </header>
+          <section class="start-panel">
+            <p class="section-kicker">${modeLabel}</p>
+            <h3>${station.title}</h3>
+            <p>${station.mission}</p>
+            <button class="kiosk-start-button" type="button" data-kiosk-start="true">주문 시작</button>
+          </section>
+          <footer class="kiosk-homebar">
+            <span>처음으로</span>
+            <span>직원 호출</span>
+            <span>도움말</span>
+          </footer>
+        </div>
+        <div class="kiosk-hardware-slot" aria-hidden="true"></div>
+      </div>
+    </div>
+  `;
+
+  root.querySelector("[data-kiosk-start]").addEventListener("click", () => {
+    state.kioskStarted = true;
+    renderStation();
+  });
 }
 
 function renderTimerStation(root, mode) {
@@ -1030,11 +1136,13 @@ els.restartButton.addEventListener("click", () => {
 
 els.challengeMode.addEventListener("click", () => {
   state.mode = "challenge";
+  state.kioskStarted = false;
   renderStation();
 });
 
 els.kindMode.addEventListener("click", () => {
   state.mode = "kind";
+  state.kioskStarted = false;
   renderStation();
 });
 
