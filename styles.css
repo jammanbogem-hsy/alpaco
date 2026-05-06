@@ -1858,3 +1858,132 @@ button {
     min-height: 56px;
   }
 }
+
+body.kiosk-focus-mode {
+  background:
+    linear-gradient(180deg, #eef8ff 0%, #f7fff1 100%);
+}
+
+body.kiosk-focus-mode .app-shell {
+  grid-template-columns: 1fr;
+  min-height: 100vh;
+}
+
+body.kiosk-focus-mode .station-rail,
+body.kiosk-focus-mode .topbar,
+body.kiosk-focus-mode .station-header {
+  display: none;
+}
+
+body.kiosk-focus-mode .main-stage {
+  min-height: 100vh;
+  padding: clamp(10px, 1.6vw, 18px);
+}
+
+body.kiosk-focus-mode .station-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 350px);
+  gap: clamp(10px, 1.5vw, 18px);
+  align-items: stretch;
+  width: min(100%, 1180px);
+  margin: 0 auto;
+}
+
+body.kiosk-focus-mode .experience-zone {
+  display: grid;
+  min-height: 0;
+}
+
+body.kiosk-focus-mode .kiosk-frame {
+  min-height: calc(100vh - 36px);
+  max-height: calc(100vh - 36px);
+  overflow: auto;
+  border-width: 3px;
+  box-shadow: none;
+}
+
+body.kiosk-focus-mode .kiosk-stage {
+  min-height: calc(100vh - 46px);
+  padding: clamp(8px, 1.5vw, 16px);
+}
+
+body.kiosk-focus-mode .kiosk-hardware {
+  width: min(100%, 500px);
+}
+
+body.kiosk-focus-mode .reflection-panel {
+  display: grid;
+  align-content: start;
+  max-height: calc(100vh - 36px);
+  overflow: auto;
+  box-shadow: none;
+}
+
+body.kiosk-focus-mode .reflection-panel .section-kicker {
+  color: var(--coral);
+}
+
+body.kiosk-focus-mode .reflection-panel .insight-box {
+  display: none;
+}
+
+body.kiosk-focus-mode .barrier-log {
+  max-height: none;
+}
+
+body.kiosk-focus-mode .toast {
+  right: 14px;
+  bottom: 14px;
+}
+
+@media (max-width: 980px) {
+  body.kiosk-focus-mode .station-layout {
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  body.kiosk-focus-mode .kiosk-frame {
+    min-height: auto;
+    max-height: none;
+  }
+
+  body.kiosk-focus-mode .kiosk-stage {
+    min-height: auto;
+  }
+
+  body.kiosk-focus-mode .reflection-panel {
+    max-height: none;
+  }
+}
+
+@media (max-width: 560px) {
+  body.kiosk-focus-mode .main-stage {
+    padding: 0;
+  }
+
+  body.kiosk-focus-mode .station-layout {
+    gap: 0;
+  }
+
+  body.kiosk-focus-mode .kiosk-frame {
+    border: 0;
+    border-radius: 0;
+  }
+
+  body.kiosk-focus-mode .kiosk-stage {
+    padding: 8px;
+  }
+
+  body.kiosk-focus-mode .kiosk-hardware {
+    border-radius: 10px;
+  }
+
+  body.kiosk-focus-mode .reflection-panel {
+    margin: 10px;
+    border-width: 2px;
+  }
+
+  body.kiosk-focus-mode .log-entry {
+    border-width: 2px;
+  }
+}

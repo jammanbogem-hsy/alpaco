@@ -110,6 +110,9 @@ function clearRuntime() {
 
 function showView(viewName) {
   clearRuntime();
+  if (viewName !== "station") {
+    state.kioskStarted = false;
+  }
   [els.homeView, els.stationView, els.summaryView].forEach((view) => view.classList.remove("is-active"));
   if (viewName === "home") {
     els.homeView.classList.add("is-active");
@@ -121,6 +124,13 @@ function showView(viewName) {
     renderSummary();
     els.summaryView.classList.add("is-active");
   }
+  syncFocusMode();
+}
+
+function syncFocusMode() {
+  const focused = state.kioskStarted && els.stationView.classList.contains("is-active");
+  document.body.classList.toggle("kiosk-focus-mode", focused);
+  els.stationView.classList.toggle("is-focus", focused);
 }
 
 function renderProgress() {
@@ -204,6 +214,7 @@ function renderStation() {
   } else {
     renderers[station.id](els.simulator, state.mode);
   }
+  syncFocusMode();
   renderProgress();
 }
 
@@ -224,6 +235,7 @@ function recordBarrier(message) {
 function completeStation(message) {
   const station = currentStation();
   if (!station) return;
+  state.kioskStarted = false;
   state.completed.add(station.id);
   state.barriers.unshift({
     stationId: station.id,
@@ -233,6 +245,7 @@ function completeStation(message) {
   });
   renderProgress();
   renderBarrierLog();
+  syncFocusMode();
   showToast("체험 완료. 더 좋은 설계를 찾았습니다.");
 }
 
