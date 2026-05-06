@@ -4,7 +4,7 @@ const stations = [
     badge: "3초",
     title: "3초 뒤 사라지는 주문 키오스크",
     short: "고민할 시간이 부족한 화면",
-    mission: "치즈버거, 감자튀김, 콜라, 카드 결제까지 완료해 보세요.",
+    mission: "치즈버거, 감자튀김, 콜라(M), 얼음 적게, 카드 결제까지 완료해 보세요.",
     kicker: "시간 장벽",
     insight: "충분한 시간, 멈춤 버튼, 이전 단계로 돌아가기 버튼이 있어야 합니다.",
     principle: "시간을 넉넉하게",
@@ -443,7 +443,7 @@ function kioskHeroFor(stationId) {
       brand: "모두버거",
       title: "오늘의 추천 메뉴",
       name: "치즈버거",
-      copy: "버거, 감자튀김, 음료를 한 번에 주문해 보세요.",
+      copy: "치즈버거, 감자튀김, 콜라(M), 얼음 적게를 주문해 보세요.",
       art: foodArt("combo")
     },
     tiny: {
@@ -552,14 +552,28 @@ function renderTimerStation(root, mode) {
       label: "음료",
       key: "drink",
       title: "음료를 선택해 주세요",
-      subtitle: "세트에 포함할 음료를 고릅니다.",
+      subtitle: "세트에 포함할 콜라(M)를 고릅니다.",
       guide: isKind ? "선택한 버거와 사이드를 보면서 음료까지 차례로 고를 수 있습니다." : "사이드 다음에도 음료 단계가 남아 있어 더 급하게 느껴집니다.",
       correct: "cola",
       items: [
-        { id: "cola", label: "콜라", desc: "기본 음료", price: 0, visual: "cup" },
-        { id: "zero-cola", label: "제로콜라", desc: "당류 0g", price: 0, visual: "cup" },
-        { id: "ade", label: "레몬에이드", desc: "추가 700원", price: 700, visual: "cup" },
-        { id: "water", label: "생수", desc: "시원한 물", price: 0, visual: "cup" }
+        { id: "cola", label: "콜라(M)", desc: "기본 탄산음료", price: 0, visual: "cup" },
+        { id: "zero-cola", label: "제로콜라(M)", desc: "당류 0g", price: 0, visual: "cup" },
+        { id: "cider", label: "사이다(M)", desc: "레몬향 탄산", price: 0, visual: "cup" },
+        { id: "ade", label: "레몬에이드(M)", desc: "추가 700원", price: 700, visual: "cup" }
+      ]
+    },
+    {
+      label: "얼음",
+      key: "ice",
+      title: "얼음 양을 선택해 주세요",
+      subtitle: "콜라(M)에 넣을 얼음 양을 고릅니다.",
+      guide: isKind ? "음료 이름과 얼음 양이 나뉘어 있어 주문 조건을 하나씩 확인할 수 있습니다." : "음료를 고른 뒤 얼음 양까지 다시 고르는 과정이 주문을 더 복잡하게 만듭니다.",
+      correct: "ice-less",
+      items: [
+        { id: "ice-none", label: "얼음 없음", desc: "얼음을 넣지 않음", price: 0, mark: "없" },
+        { id: "ice-less", label: "얼음 적게", desc: "조금만 넣기", price: 0, mark: "적" },
+        { id: "ice-normal", label: "얼음 중간", desc: "기본 양", price: 0, mark: "중" },
+        { id: "ice-more", label: "얼음 많이", desc: "가득 넣기", price: 0, mark: "많" }
       ]
     },
     {

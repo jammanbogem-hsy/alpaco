@@ -1013,7 +1013,10 @@ button {
 
 .order-steps {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
+  justify-content: flex-end;
+  max-width: 340px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -1825,6 +1828,15 @@ button {
   .kiosk-brandbar,
   .order-heading {
     display: grid;
+  }
+
+  .order-heading {
+    grid-template-columns: 1fr;
+  }
+
+  .order-steps {
+    justify-content: flex-start;
+    max-width: none;
   }
 
   .product-grid,
