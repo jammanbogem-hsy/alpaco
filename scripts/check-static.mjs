@@ -22,4 +22,12 @@ if (missing.length > 0) {
   throw new Error(`Missing required content: ${missing.join(", ")}`);
 }
 
+const productImagesBlock = js.match(/const productImages = \{([\s\S]*?)\n\};/);
+if (!productImagesBlock) {
+  throw new Error("Missing productImages map");
+}
+
+const imagePaths = [...productImagesBlock[1].matchAll(/:\s*"([^"]+)"/g)].map((match) => match[1]);
+await Promise.all(imagePaths.map((path) => access(path)));
+
 console.log("Static app check passed.");

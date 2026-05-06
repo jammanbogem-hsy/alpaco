@@ -297,18 +297,18 @@ const productImages = {
   "cheese-set": "assets/menu/cheese-burger.png",
   shrimp: "assets/menu/shrimp-burger.png",
   wrap: "assets/menu/chicken-wrap.png",
-  salad: "샐러드.png",
-  fries: "감자튀김.png",
-  stick: "치즈스틱.png",
-  corn: "콘샐러드.png",
-  cola: "콜라.png",
-  "zero-cola": "제로콜라.png",
-  cider: "사이다.png",
-  ade: "레몬에이드.png",
-  "ice-none": "얼음없음.png",
-  "ice-less": "얼음적게.png",
-  "ice-normal": "얼음중간.png",
-  "ice-more": "얼음많이.png"
+  salad: "assets/menu/salad.png",
+  fries: "assets/menu/fries.png",
+  stick: "assets/menu/cheese-stick.png",
+  corn: "assets/menu/corn-salad.png",
+  cola: "assets/menu/cola.png",
+  "zero-cola": "assets/menu/zero-cola.png",
+  cider: "assets/menu/cider.png",
+  ade: "assets/menu/lemonade.png",
+  "ice-none": "assets/menu/ice-none.png",
+  "ice-less": "assets/menu/ice-less.png",
+  "ice-normal": "assets/menu/ice-normal.png",
+  "ice-more": "assets/menu/ice-more.png"
 };
 
 function productImageMarkup(src, className = "") {
