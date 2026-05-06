@@ -399,14 +399,13 @@ function cartPanel(items, actionLabel = "결제하기") {
   `;
 }
 
-function kioskShell({ brand, title, subtitle, mode, status, timer, steps, activeStep, body, cartItems, guide, className = "", ambient = "" }) {
+function kioskShell({ brand, title, subtitle, mode, status, timer, steps, activeStep, body, cartItems, guide, className = "" }) {
   const modeLabel = mode === "kind" ? "개선 모드" : "어려운 모드";
   const station = currentStation();
   const hero = kioskHeroFor(station?.id || "timer");
-  const stageClass = ["kiosk-stage", mode === "challenge" ? "challenge" : "", ambient ? "has-pressure-bubbles" : ""].filter(Boolean).join(" ");
+  const stageClass = ["kiosk-stage", mode === "challenge" ? "challenge" : ""].filter(Boolean).join(" ");
   return `
     <div class="${stageClass}">
-      ${ambient}
       <div class="kiosk-hardware">
         <div class="kiosk-device-screen">
           <div class="real-kiosk ${className}">
@@ -613,7 +612,6 @@ function renderTimerStation(root, mode) {
   ];
 
   const order = {};
-  let pressureComplaints = [];
   let step = 0;
   let timeLeft = isKind ? 0 : 3;
   let timer = 0;
@@ -623,48 +621,6 @@ function renderTimerStation(root, mode) {
     disposed = true;
     window.clearInterval(timer);
   });
-
-  const pressureSchedule = [
-    { at: 2.4, side: "left", level: 1, text: (label) => `${label}부터 빨리 눌러요` },
-    { at: 1.7, side: "right", level: 1, text: () => "뒤에 손님 기다려요" },
-    { at: 1.0, side: "left", level: 2, text: () => "시간 얼마 안 남았어요" },
-    { at: 0.3, side: "right", level: 3, text: () => "곧 초기화돼요!" }
-  ];
-
-  function pressureBubblesMarkup() {
-    return `
-      <div class="pressure-bubbles" data-pressure-bubbles="true" aria-hidden="true">
-        <div class="pressure-stack pressure-stack-left" data-pressure-stack="left">${pressureStackMarkup("left")}</div>
-        <div class="pressure-stack pressure-stack-right" data-pressure-stack="right">${pressureStackMarkup("right")}</div>
-      </div>
-    `;
-  }
-
-  function pressureStackMarkup(side) {
-    return pressureComplaints
-      .filter((item) => item.side === side)
-      .map((item) => `<span class="pressure-bubble pressure-level-${item.level}">${item.text}</span>`)
-      .join("");
-  }
-
-  function updatePressureBubbles() {
-    const current = steps[step];
-    const container = root.querySelector("[data-pressure-bubbles]");
-    if (!current || !container) return;
-    pressureSchedule.forEach((item, index) => {
-      const id = `${step}-${index}`;
-      if (timeLeft <= item.at && !pressureComplaints.some((complaint) => complaint.id === id)) {
-        pressureComplaints.push({
-          id,
-          side: item.side,
-          level: item.level,
-          text: item.text(current.label)
-        });
-      }
-    });
-    container.querySelector('[data-pressure-stack="left"]').innerHTML = pressureStackMarkup("left");
-    container.querySelector('[data-pressure-stack="right"]').innerHTML = pressureStackMarkup("right");
-  }
 
   function draw() {
     const current = steps[step];
@@ -680,7 +636,6 @@ function renderTimerStation(root, mode) {
       guide: current.guide,
       cartItems: selectedCartItems(order),
       className: isKind ? "friendly-kiosk" : "pressure-kiosk",
-      ambient: !isKind ? pressureBubblesMarkup() : "",
       body: `
         <div class="category-tabs" aria-label="메뉴 분류">
           <span class="category-tab is-active">${current.label}</span>
@@ -728,13 +683,11 @@ function renderTimerStation(root, mode) {
       timeLeft -= 0.1;
       const readout = root.querySelector("#timerReadout");
       if (readout) readout.textContent = `${Math.max(timeLeft, 0).toFixed(1)}초`;
-      updatePressureBubbles();
       if (timeLeft <= 0) {
         window.clearInterval(timer);
         recordBarrier("생각할 시간이 부족해 주문 화면이 처음으로 돌아갔습니다.");
         step = 0;
         Object.keys(order).forEach((key) => delete order[key]);
-        pressureComplaints = [];
         timeLeft = 3;
         draw();
         startClock();
