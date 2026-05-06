@@ -21,9 +21,7 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background:
-    linear-gradient(90deg, rgba(76, 167, 232, 0.16) 0 12%, transparent 12% 100%),
-    linear-gradient(180deg, #fff9e7 0%, #eef8ff 48%, #f6fff1 100%);
+  background: linear-gradient(180deg, #fff9e7 0%, #eef8ff 48%, #f6fff1 100%);
   color: var(--ink);
   font-family:
     ui-rounded, "Apple SD Gothic Neo", "Malgun Gothic", system-ui, -apple-system, BlinkMacSystemFont,
@@ -44,45 +42,10 @@ button {
 
 .app-shell {
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   min-height: 100vh;
 }
 
-.station-rail {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  padding: 22px;
-  background: #ffffff;
-  border-right: 3px solid var(--line);
-}
-
-.rail-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 42px;
-  font-weight: 900;
-}
-
-.brand-mark {
-  display: grid;
-  width: 42px;
-  height: 42px;
-  place-items: center;
-  border: 3px solid var(--line);
-  border-radius: 8px;
-  background: var(--sun);
-  box-shadow: 4px 4px 0 var(--line);
-}
-
-.rail-list {
-  display: grid;
-  gap: 10px;
-}
-
-.rail-item,
-.rail-summary,
 .mode-button,
 .primary-action,
 .secondary-action,
@@ -103,20 +66,6 @@ button {
     background 0.12s ease;
 }
 
-.rail-item {
-  display: grid;
-  grid-template-columns: 46px 1fr;
-  align-items: center;
-  gap: 10px;
-  min-height: 58px;
-  padding: 8px;
-  text-align: left;
-}
-
-.rail-item:hover,
-.rail-item:focus-visible,
-.rail-summary:hover,
-.rail-summary:focus-visible,
 .mode-button:hover,
 .mode-button:focus-visible,
 .primary-action:hover,
@@ -135,40 +84,6 @@ button {
 .next-button:focus-visible {
   transform: translate(2px, 2px);
   box-shadow: 2px 2px 0 var(--line);
-}
-
-.rail-item.is-active {
-  background: var(--cream);
-}
-
-.rail-item.is-done {
-  background: #e9ffe6;
-}
-
-.rail-badge {
-  display: grid;
-  width: 42px;
-  height: 42px;
-  place-items: center;
-  border: 3px solid var(--line);
-  border-radius: 8px;
-  background: var(--sky);
-  color: #ffffff;
-  font-size: 0.9rem;
-  font-weight: 900;
-}
-
-.rail-label {
-  display: block;
-  font-size: 0.95rem;
-  line-height: 1.25;
-}
-
-.rail-summary {
-  margin-top: auto;
-  min-height: 48px;
-  padding: 10px 12px;
-  background: var(--mint);
 }
 
 .main-stage {
@@ -752,25 +667,25 @@ button {
 }
 
 .start-hardware {
-  width: min(100%, 520px);
+  width: min(100%, 720px);
 }
 
 .start-device-screen {
   display: grid;
-  grid-template-rows: minmax(230px, 1fr) auto auto;
+  grid-template-rows: minmax(260px, 1fr) auto auto;
   background: #fffdf5;
 }
 
 .start-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 132px;
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) 180px;
+  gap: 22px;
   align-items: center;
-  padding: 26px;
+  padding: 32px;
   background:
-    linear-gradient(135deg, rgba(255, 191, 47, 0.95), rgba(255, 93, 125, 0.92)),
-    #ffbf2f;
-  color: #202331;
+    linear-gradient(135deg, rgba(20, 33, 61, 0.94), rgba(45, 55, 89, 0.92)),
+    #14213d;
+  color: #ffffff;
 }
 
 .start-copy {
@@ -790,18 +705,29 @@ button {
   font-weight: 900;
 }
 
+.start-copy p {
+  color: var(--sun);
+}
+
 .start-copy h3 {
-  font-size: clamp(1.9rem, 7vw, 3rem);
+  font-size: clamp(3rem, 8vw, 4.6rem);
   line-height: 1;
 }
 
-.start-copy strong {
-  font-size: 1.35rem;
+.start-copy span {
+  color: #dde8ff;
+  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  line-height: 1.35;
 }
 
 .start-art {
   display: grid;
   place-items: center;
+}
+
+.start-art .hero-product-image {
+  width: 150px;
+  height: 150px;
 }
 
 .start-art .product-image-frame,
@@ -1092,7 +1018,7 @@ button {
 
 .product-card {
   display: grid;
-  grid-template-columns: 72px minmax(0, 1fr);
+  grid-template-columns: 84px minmax(0, 1fr);
   gap: 10px;
   align-items: center;
   min-height: 112px;
@@ -1141,7 +1067,6 @@ button {
   font-size: 0.92rem;
 }
 
-.product-image-frame,
 .food-art,
 .text-art {
   position: relative;
@@ -1155,17 +1080,38 @@ button {
   overflow: hidden;
 }
 
+.product-image-frame {
+  position: relative;
+  display: grid;
+  width: 80px;
+  height: 80px;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
 .product-image-frame img {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
+  transform: scale(1.28);
+  transform-origin: center;
+}
+
+.product-image-ice-none img,
+.product-image-ice-less img,
+.product-image-ice-normal img,
+.product-image-ice-more img {
+  transform: scale(1.78);
 }
 
 .hero-product-image {
   width: 96px;
   height: 96px;
-  background: #fff4cc;
+  background: #ffffff;
 }
 
 .text-art {
@@ -1403,20 +1349,24 @@ button {
 }
 
 .tiny-products .product-card {
-  grid-template-columns: 34px minmax(0, 1fr);
+  grid-template-columns: 38px minmax(0, 1fr);
   min-height: 74px;
   padding: 6px;
   border-width: 2px;
   box-shadow: none;
 }
 
-.tiny-products .product-image-frame,
 .tiny-products .food-art,
 .tiny-products .text-art {
   width: 32px;
   height: 32px;
   border-width: 2px;
   font-size: 0.8rem;
+}
+
+.tiny-products .product-image-frame {
+  width: 36px;
+  height: 36px;
 }
 
 .tiny-products .food-art span,
@@ -1724,33 +1674,6 @@ button {
 }
 
 @media (max-width: 900px) {
-  .app-shell {
-    grid-template-columns: 1fr;
-  }
-
-  .station-rail {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    display: grid;
-    grid-template-columns: 1fr auto;
-    padding: 12px;
-    border-right: 0;
-    border-bottom: 3px solid var(--line);
-  }
-
-  .rail-list {
-    grid-column: 1 / -1;
-    grid-auto-flow: column;
-    grid-auto-columns: 190px;
-    overflow-x: auto;
-    padding-bottom: 4px;
-  }
-
-  .rail-summary {
-    margin-top: 0;
-  }
-
   .main-stage {
     padding: 16px;
   }
@@ -1831,8 +1754,21 @@ button {
   }
 
   .start-hero {
-    grid-template-columns: minmax(0, 1fr) 90px;
+    grid-template-columns: minmax(0, 1fr) 112px;
     padding: 18px;
+  }
+
+  .start-art .hero-product-image {
+    width: 96px;
+    height: 96px;
+  }
+
+  .start-copy h3 {
+    font-size: clamp(2rem, 11vw, 3rem);
+  }
+
+  .start-copy span {
+    font-size: 1rem;
   }
 
   .start-art .product-image-frame,
@@ -1869,15 +1805,19 @@ button {
   }
 
   .product-card {
-    grid-template-columns: 64px minmax(0, 1fr);
+    grid-template-columns: 72px minmax(0, 1fr);
     min-height: 108px;
   }
 
-  .product-image-frame,
   .food-art,
   .text-art {
     width: 60px;
     height: 60px;
+  }
+
+  .product-image-frame {
+    width: 68px;
+    height: 68px;
   }
 
   .order-cart {
@@ -1897,11 +1837,9 @@ body.kiosk-focus-mode {
 }
 
 body.kiosk-focus-mode .app-shell {
-  grid-template-columns: 1fr;
   min-height: 100vh;
 }
 
-body.kiosk-focus-mode .station-rail,
 body.kiosk-focus-mode .topbar,
 body.kiosk-focus-mode .station-header {
   display: none;

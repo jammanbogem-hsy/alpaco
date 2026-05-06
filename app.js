@@ -72,10 +72,8 @@ const els = {
   homeView: document.querySelector("#homeView"),
   stationView: document.querySelector("#stationView"),
   summaryView: document.querySelector("#summaryView"),
-  stationRail: document.querySelector("#stationRail"),
   stationCards: document.querySelector("#stationCards"),
   startButton: document.querySelector("#startButton"),
-  summaryRailButton: document.querySelector("#summaryRailButton"),
   restartButton: document.querySelector("#restartButton"),
   progressText: document.querySelector("#progressText"),
   progressBar: document.querySelector("#progressBar"),
@@ -137,26 +135,6 @@ function renderProgress() {
   const done = state.completed.size;
   els.progressText.textContent = `${done} / ${stations.length} 완료`;
   els.progressBar.style.width = `${(done / stations.length) * 100}%`;
-  renderRail();
-}
-
-function renderRail() {
-  els.stationRail.innerHTML = stations
-    .map((station) => {
-      const active = station.id === state.currentId ? " is-active" : "";
-      const done = state.completed.has(station.id) ? " is-done" : "";
-      return `
-        <button class="rail-item${active}${done}" type="button" data-station="${station.id}">
-          <span class="rail-badge">${station.badge}</span>
-          <span class="rail-label">${station.title}</span>
-        </button>
-      `;
-    })
-    .join("");
-
-  els.stationRail.querySelectorAll("[data-station]").forEach((button) => {
-    button.addEventListener("click", () => openStation(button.dataset.station));
-  });
 }
 
 function renderCards() {
@@ -318,7 +296,19 @@ const productImages = {
   bulgogi: "assets/menu/bulgogi-burger.png",
   "cheese-set": "assets/menu/cheese-burger.png",
   shrimp: "assets/menu/shrimp-burger.png",
-  wrap: "assets/menu/chicken-wrap.png"
+  wrap: "assets/menu/chicken-wrap.png",
+  salad: "샐러드.png",
+  fries: "감자튀김.png",
+  stick: "치즈스틱.png",
+  corn: "콘샐러드.png",
+  cola: "콜라.png",
+  "zero-cola": "제로콜라.png",
+  cider: "사이다.png",
+  ade: "레몬에이드.png",
+  "ice-none": "얼음없음.png",
+  "ice-less": "얼음적게.png",
+  "ice-normal": "얼음중간.png",
+  "ice-more": "얼음많이.png"
 };
 
 function productImageMarkup(src, className = "") {
@@ -332,7 +322,7 @@ function productImageMarkup(src, className = "") {
 function productArt(item) {
   const imageSrc = productImages[item.id];
   if (imageSrc) {
-    return productImageMarkup(imageSrc);
+    return productImageMarkup(imageSrc, `product-image-${item.id}`);
   }
   return item.visual ? foodArt(item.visual) : `<span class="text-art">${item.mark || item.label.slice(0, 1)}</span>`;
 }
@@ -511,18 +501,17 @@ function renderKioskStart(root, station, mode) {
         <div class="kiosk-device-screen start-device-screen">
           <header class="start-hero">
             <div class="start-copy">
-              <p>${hero.brand}</p>
-              <h3>${hero.title}</h3>
-              <strong>${hero.name}</strong>
+              <p>${hero.title}</p>
+              <h3>${hero.name}</h3>
               <span>${hero.copy}</span>
             </div>
             <div class="start-art">${hero.art}</div>
           </header>
           <section class="start-panel">
             <p class="section-kicker">${modeLabel}</p>
-            <h3>${station.title}</h3>
+            <h3>주문 목표를 확인했나요?</h3>
             <p>${station.mission}</p>
-            <button class="kiosk-start-button" type="button" data-kiosk-start="true">주문 시작</button>
+            <button class="kiosk-start-button" type="button" data-kiosk-start="true">시작</button>
           </section>
           <footer class="kiosk-homebar">
             <span>처음으로</span>
@@ -565,9 +554,9 @@ function renderTimerStation(root, mode) {
       correct: "fries",
       items: [
         { id: "salad", label: "샐러드", desc: "상큼한 채소", price: 0, visual: "salad" },
-        { id: "fries", label: "감자튀김", desc: "기본 사이드", price: 0, visual: "fries" },
+        { id: "corn", label: "콘샐러드", desc: "달콤한 옥수수", price: 0, visual: "salad" },
         { id: "stick", label: "치즈스틱", desc: "추가 800원", price: 800, visual: "stick" },
-        { id: "corn", label: "콘샐러드", desc: "달콤한 옥수수", price: 0, visual: "salad" }
+        { id: "fries", label: "감자튀김", desc: "기본 사이드", price: 0, visual: "fries" }
       ]
     },
     {
@@ -1187,7 +1176,6 @@ function renderSummary() {
 }
 
 els.startButton.addEventListener("click", () => openStation(stations[0].id));
-els.summaryRailButton.addEventListener("click", () => showView("summary"));
 els.restartButton.addEventListener("click", () => {
   state.currentId = null;
   showView("home");
@@ -1207,5 +1195,4 @@ els.kindMode.addEventListener("click", () => {
 });
 
 renderCards();
-renderRail();
 renderProgress();
