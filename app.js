@@ -376,12 +376,14 @@ function cartPanel(items, actionLabel = "결제하기") {
   `;
 }
 
-function kioskShell({ brand, title, subtitle, mode, status, timer, steps, activeStep, body, cartItems, guide, className = "" }) {
+function kioskShell({ brand, title, subtitle, mode, status, timer, steps, activeStep, body, cartItems, guide, className = "", ambient = "" }) {
   const modeLabel = mode === "kind" ? "개선 모드" : "어려운 모드";
   const station = currentStation();
   const hero = kioskHeroFor(station?.id || "timer");
+  const stageClass = ["kiosk-stage", mode === "challenge" ? "challenge" : "", ambient ? "has-pressure-bubbles" : ""].filter(Boolean).join(" ");
   return `
-    <div class="kiosk-stage ${mode === "challenge" ? "challenge" : ""}">
+    <div class="${stageClass}">
+      ${ambient}
       <div class="kiosk-hardware">
         <div class="kiosk-device-screen">
           <div class="real-kiosk ${className}">
@@ -653,8 +655,8 @@ function renderTimerStation(root, mode) {
       guide: current.guide,
       cartItems: selectedCartItems(order),
       className: isKind ? "friendly-kiosk" : "pressure-kiosk",
+      ambient: !isKind ? pressureBubblesMarkup(pressure) : "",
       body: `
-        ${!isKind ? pressureBubblesMarkup(pressure) : ""}
         <div class="category-tabs" aria-label="메뉴 분류">
           <span class="category-tab is-active">${current.label}</span>
           <span class="category-tab">추천</span>

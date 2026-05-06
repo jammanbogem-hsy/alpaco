@@ -720,6 +720,15 @@ button {
   padding: 20px;
 }
 
+.kiosk-stage.has-pressure-bubbles {
+  align-content: center;
+  gap: 12px;
+}
+
+.kiosk-stage.has-pressure-bubbles .kiosk-hardware {
+  grid-row: 2;
+}
+
 .kiosk-hardware {
   display: grid;
   width: min(100%, 540px);
@@ -1061,28 +1070,31 @@ button {
 .pressure-bubbles {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  min-height: 42px;
-  gap: 8px;
+  grid-row: 1;
+  width: min(100%, 540px);
+  gap: 10px;
   align-items: center;
+  justify-self: center;
+  pointer-events: none;
 }
 
 .pressure-bubble {
   display: inline-grid;
-  max-width: 230px;
+  max-width: 270px;
   min-width: 0;
-  min-height: 34px;
+  min-height: 52px;
   align-items: center;
-  padding: 7px 10px;
-  border: 2px solid var(--line);
+  padding: 12px 16px;
+  border: 3px solid var(--line);
   border-radius: 999px;
   background: #fff4bd;
   color: var(--ink);
-  font-size: 0.74rem;
+  font-size: clamp(0.95rem, 1.2vw, 1.1rem);
   font-weight: 900;
   line-height: 1.2;
   opacity: 0;
   overflow-wrap: anywhere;
-  box-shadow: 3px 3px 0 var(--line);
+  box-shadow: 5px 5px 0 var(--line);
   transform: translateY(5px) scale(0.96);
   transition:
     opacity 160ms ease,
@@ -1092,12 +1104,12 @@ button {
 
 .pressure-bubble-left {
   justify-self: start;
-  border-bottom-left-radius: 7px;
+  border-bottom-right-radius: 7px;
 }
 
 .pressure-bubble-right {
   justify-self: end;
-  border-bottom-right-radius: 7px;
+  border-bottom-left-radius: 7px;
   background: #ffe3eb;
 }
 
@@ -1123,6 +1135,34 @@ button {
 @media (prefers-reduced-motion: reduce) {
   .pressure-bubbles[data-level="3"] .pressure-bubble {
     animation: none;
+  }
+}
+
+@media (min-width: 760px) {
+  body.kiosk-focus-mode .kiosk-stage.has-pressure-bubbles {
+    grid-template-columns: minmax(110px, 1fr) minmax(0, 500px) minmax(110px, 1fr);
+    column-gap: clamp(10px, 1.7vw, 22px);
+    align-items: center;
+  }
+
+  body.kiosk-focus-mode .kiosk-stage.has-pressure-bubbles .pressure-bubbles {
+    display: contents;
+  }
+
+  body.kiosk-focus-mode .kiosk-stage.has-pressure-bubbles .kiosk-hardware {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: center;
+  }
+
+  body.kiosk-focus-mode .kiosk-stage.has-pressure-bubbles .pressure-bubble-left {
+    grid-column: 1;
+    justify-self: end;
+  }
+
+  body.kiosk-focus-mode .kiosk-stage.has-pressure-bubbles .pressure-bubble-right {
+    grid-column: 3;
+    justify-self: start;
   }
 }
 
