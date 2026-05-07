@@ -4,10 +4,8 @@ const requiredFiles = ["index.html", "styles.css", "app.js", "vercel.json"];
 const requiredSnippets = [
   "이상한 키오스크 월드",
   "3초 뒤 사라지는 주문 키오스크",
-  "콩알 버튼 키오스크",
-  "외계어 메뉴 키오스크",
-  "흐릿흐릿 색깔 키오스크",
-  "소리만 알려주는 번호표 키오스크"
+  "어려운 결제 키오스크",
+  "외계어 메뉴 키오스크"
 ];
 
 await Promise.all(requiredFiles.map((file) => access(file)));

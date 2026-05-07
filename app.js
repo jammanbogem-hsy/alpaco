@@ -8,18 +8,8 @@ const stations = [
     kicker: "시간 장벽",
     insight: "충분한 시간, 멈춤 버튼, 이전 단계로 돌아가기 버튼이 있어야 합니다.",
     principle: "시간을 넉넉하게",
-    summary: "화면 제한 시간을 늘리고, 연장 버튼과 뒤로 가기 버튼을 함께 둡니다."
-  },
-  {
-    id: "tiny",
-    badge: "작음",
-    title: "콩알 버튼 키오스크",
-    short: "작고 촘촘한 터치 버튼",
-    mission: "두유 라떼, 따뜻하게, 포장 주문을 찾아 선택해 보세요.",
-    kicker: "터치 장벽",
-    insight: "손 떨림이나 시력 저하가 있어도 누를 수 있도록 버튼이 커야 합니다.",
-    principle: "버튼을 크게",
-    summary: "터치 영역을 넓히고 메뉴 사이 간격을 충분히 둡니다."
+    summary: "화면 제한 시간을 늘리고, 연장 버튼과 뒤로 가기 버튼을 함께 둡니다.",
+    closing: "사용자가 늦은 것이 아니라, 충분히 생각할 시간을 주는 화면이 필요합니다."
   },
   {
     id: "alien",
@@ -30,29 +20,20 @@ const stations = [
     kicker: "문해 장벽",
     insight: "쉬운 말, 그림, 예시가 있으면 처음 쓰는 사람도 이해하기 쉽습니다.",
     principle: "쉬운 말로",
-    summary: "외래어와 줄임말을 줄이고, 쉬운 설명과 그림 단서를 제공합니다."
+    summary: "외래어와 줄임말을 줄이고, 쉬운 설명과 그림 단서를 제공합니다.",
+    closing: "낯선 말은 주문을 막을 수 있으므로 쉬운 말과 그림 단서가 함께 있어야 합니다."
   },
   {
-    id: "contrast",
-    badge: "색",
-    title: "흐릿흐릿 색깔 키오스크",
-    short: "낮은 대비와 색깔만 있는 안내",
-    mission: "1,000원 할인 쿠폰을 적용하고 결제해 보세요.",
-    kicker: "시각 장벽",
-    insight: "색깔만으로 구분하지 않고 글자, 모양, 명확한 대비를 함께 써야 합니다.",
-    principle: "대비를 선명하게",
-    summary: "글자와 배경의 명암을 키우고 색상 외의 표시를 함께 씁니다."
-  },
-  {
-    id: "audio",
-    badge: "소리",
-    title: "소리만 알려주는 번호표 키오스크",
-    short: "자막 없는 음성 안내",
-    mission: "소아과 접수 번호표를 뽑아 보세요.",
-    kicker: "청각 장벽",
-    insight: "음성 안내에는 자막, 화면 안내, 다시 듣기 기능이 함께 필요합니다.",
-    principle: "소리와 글자를 함께",
-    summary: "음성 안내를 화면 자막과 단계 표시로도 제공합니다."
+    id: "tiny",
+    badge: "결제",
+    title: "어려운 결제 키오스크",
+    short: "할인, 적립, 결제, 영수증까지 이어지는 복잡한 과정",
+    mission: "ALPACO VIP를 인증하고, SNU 클래스 앱의 학생번호를 입력한 뒤 카드 결제를 완료해 보세요.",
+    kicker: "절차 장벽",
+    insight: "결제 전 단계가 많고 안내가 흩어져 있으면 어디를 눌러야 하는지 헷갈립니다.",
+    principle: "결제 흐름을 단순하게",
+    summary: "할인, 적립, 결제, 카드 투입, 영수증 수령을 단계별로 명확하게 안내합니다.",
+    closing: "할인, 적립, 결제, 수령은 실제 행동 순서대로 하나씩 안내해야 합니다."
   }
 ];
 
@@ -75,6 +56,7 @@ const els = {
   stationCards: document.querySelector("#stationCards"),
   startButton: document.querySelector("#startButton"),
   restartButton: document.querySelector("#restartButton"),
+  stationBackButton: document.querySelector("#stationBackButton"),
   progressText: document.querySelector("#progressText"),
   progressBar: document.querySelector("#progressBar"),
   stationKicker: document.querySelector("#stationKicker"),
@@ -140,16 +122,22 @@ function renderProgress() {
 function renderCards() {
   els.stationCards.innerHTML = stations
     .map(
-      (station) => `
-        <button class="station-card" type="button" data-station="${station.id}">
-          <span class="monster-token">${station.badge}</span>
+      (station) => {
+        const isComplete = state.completed.has(station.id);
+        return `
+        <button class="station-card ${isComplete ? "is-complete" : ""}" type="button" data-station="${station.id}">
+          <span class="station-card-top">
+            <span class="monster-token">${station.badge}</span>
+            ${isComplete ? `<span class="station-card-status">완료</span>` : ""}
+          </span>
           <span>
             <p class="section-kicker">${station.kicker}</p>
             <h3>${station.title}</h3>
-            <p>${station.short}</p>
+            <p>${isComplete ? station.closing : station.short}</p>
           </span>
         </button>
-      `
+      `;
+      }
     )
     .join("");
 
@@ -164,6 +152,14 @@ function openStation(id) {
   state.kioskStarted = false;
   showView("station");
   renderStation();
+}
+
+function returnHome() {
+  state.currentId = null;
+  state.kioskStarted = false;
+  renderCards();
+  showView("home");
+  renderProgress();
 }
 
 function renderStation() {
@@ -229,29 +225,17 @@ function completeStation(message) {
 
 function showCompletion(root, message) {
   const station = currentStation();
-  const next = nextStationId();
   root.innerHTML = `
     <div class="kiosk-screen">
       <div class="completion-panel">
         <h3>${station.title} 완료</h3>
         <p>${message}</p>
-        <p>사용자가 느린 것이 아니라, 화면이 불친절했을 수 있습니다.</p>
-        <button class="next-button" type="button">${next ? "다음 체험" : "돌아보기"}</button>
+        <p class="completion-lesson">마무리: ${station.closing}</p>
+        <button class="next-button" type="button">키오스크 선택으로</button>
       </div>
     </div>
   `;
-  root.querySelector(".next-button").addEventListener("click", () => {
-    if (next) {
-      openStation(next);
-    } else {
-      showView("summary");
-    }
-  });
-}
-
-function nextStationId() {
-  const index = stations.findIndex((station) => station.id === state.currentId);
-  return stations[index + 1]?.id || null;
+  root.querySelector(".next-button").addEventListener("click", returnHome);
 }
 
 function renderBarrierLog() {
@@ -308,7 +292,24 @@ const productImages = {
   "ice-none": "assets/menu/ice-none.png",
   "ice-less": "assets/menu/ice-less.png",
   "ice-normal": "assets/menu/ice-normal.png",
-  "ice-more": "assets/menu/ice-more.png"
+  "ice-more": "assets/menu/ice-more.png",
+  "barley-hot": "assets/menu/barley-tea.png",
+  "alpaco-vip": "assets/menu/alpaco-vip.png",
+  jammanbo: "assets/menu/jammanbo-membership.png",
+  "snu-class": "assets/menu/snu-class.png",
+  "message-app": "assets/menu/message-app.png",
+  "photo-app": "assets/menu/photo-app.png",
+  "map-app": "assets/menu/map-app.png",
+  "bank-app": "assets/menu/bank-app.png",
+  "weather-app": "assets/menu/weather-app.png",
+  "settings-app": "assets/menu/settings-app.png",
+  "mail-app": "assets/menu/mail-app.png",
+  "calendar-app": "assets/menu/calendar-app.png",
+  "music-app": "assets/menu/music-app.png",
+  "payment-card-hand": "assets/menu/card.png",
+  "hardware-card-slot": "assets/menu/card-slot.png",
+  "hardware-receipt": "assets/menu/receipt.png",
+  "hardware-barcode": "assets/menu/barcode-scanner.png"
 };
 
 function productImageMarkup(src, className = "") {
@@ -346,10 +347,11 @@ function stepDots(labels, activeIndex) {
 function productCard(item, attrs = "", extraClass = "") {
   const desc = item.desc ? `<small>${item.desc}</small>` : "";
   const price = typeof item.price === "number" ? `<strong>${formatWon(item.price)}</strong>` : "";
-  const art = productArt(item);
+  const art = item.noArt ? "" : productArt(item);
+  const className = ["product-card", extraClass, item.noArt ? "no-art" : ""].filter(Boolean).join(" ");
 
   return `
-    <button class="product-card ${extraClass}" type="button" ${attrs}>
+    <button class="${className}" type="button" ${attrs}>
       ${art}
       <span class="product-copy">
         <b>${item.label}</b>
@@ -425,7 +427,7 @@ function kioskShell({ brand, title, subtitle, mode, status, timer, steps, active
                 <div class="order-heading">
                   <div>
                     <h3>${title}</h3>
-                    <p>${subtitle}</p>
+                    ${subtitle ? `<p>${subtitle}</p>` : ""}
                   </div>
                   ${steps ? stepDots(steps, activeStep) : ""}
                 </div>
@@ -451,6 +453,52 @@ function selectedCartItems(values) {
   return Object.values(values).filter(Boolean);
 }
 
+function randomStudentNumber(length = 8) {
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const digits = "0123456789";
+  const all = `${letters}${digits}`;
+  const chars = [
+    letters[Math.floor(Math.random() * letters.length)],
+    digits[Math.floor(Math.random() * digits.length)]
+  ];
+
+  while (chars.length < length) {
+    chars.push(all[Math.floor(Math.random() * all.length)]);
+  }
+
+  for (let index = chars.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [chars[index], chars[swapIndex]] = [chars[swapIndex], chars[index]];
+  }
+
+  return chars.join("");
+}
+
+function captureKioskScroll(root) {
+  const frame = root.querySelector(".kiosk-frame");
+  const board = root.querySelector(".order-board");
+  return {
+    frameTop: frame ? frame.scrollTop : 0,
+    boardTop: board ? board.scrollTop : 0
+  };
+}
+
+function restoreKioskScroll(root, scrollState) {
+  if (!scrollState) return;
+
+  const restore = () => {
+    const frame = root.querySelector(".kiosk-frame");
+    const board = root.querySelector(".order-board");
+    if (frame) frame.scrollTop = scrollState.frameTop;
+    if (board) board.scrollTop = scrollState.boardTop;
+  };
+
+  restore();
+  if (typeof window !== "undefined" && window.requestAnimationFrame) {
+    window.requestAnimationFrame(restore);
+  }
+}
+
 function kioskHeroFor(stationId) {
   const heroes = {
     timer: {
@@ -461,18 +509,18 @@ function kioskHeroFor(stationId) {
       art: productImageMarkup(productImages["cheese-set"], "hero-product-image")
     },
     tiny: {
-      brand: "알파카페",
-      title: "따뜻한 음료 추천",
-      name: "두유 라떼",
-      copy: "온도와 포장 옵션을 차례대로 선택합니다.",
-      art: foodArt("cup")
+      brand: "모두페이",
+      title: "결제수단 선택",
+      name: "카드 결제",
+      copy: "ALPACO VIP 인증, SNU 클래스 적립, 결제, 영수증 수령까지 확인합니다.",
+      art: productImageMarkup(productImages["alpaco-vip"], "hero-product-image hero-alpaco-image")
     },
     alien: {
       brand: "모두티",
       title: "오늘의 차 메뉴",
       name: "따뜻한 보리차",
-      copy: "쉬운 말과 어려운 코드 메뉴를 비교합니다.",
-      art: foodArt("cup")
+      copy: "따뜻한 보리차, 포장, 설탕 없음을 선택해 보세요.",
+      art: productImageMarkup(productImages["barley-hot"], "hero-product-image hero-barley-image")
     },
     contrast: {
       brand: "모두버거",
@@ -691,104 +739,776 @@ function renderTimerStation(root, mode) {
 function renderTinyStation(root, mode) {
   const isKind = mode === "kind";
   const picks = {};
-  const groups = [
-    {
-      key: "drink",
-      title: "음료",
-      correct: "soy-latte",
-      items: [
-        { id: "milk-tea", label: "밀크티", desc: "M-14", price: 4300, visual: "cup" },
-        { id: "soy-latte", label: "두유 라떼", desc: "D2", price: 4800, visual: "cup" },
-        { id: "ade", label: "레몬 에이드", desc: "A-9", price: 4500, visual: "cup" },
-        { id: "cocoa", label: "코코아", desc: "C7", price: 4200, visual: "cup" }
-      ]
-    },
-    {
-      key: "temp",
-      title: "온도",
-      correct: "hot",
-      items: [
-        { id: "ice", label: "차갑게", desc: "ICE", price: 0, mark: "I" },
-        { id: "hot", label: "따뜻하게", desc: "HOT", price: 0, mark: "H" },
-        { id: "less-ice", label: "얼음 적게", desc: "L-ICE", price: 0, mark: "L" }
-      ]
-    },
-    {
-      key: "serve",
-      title: "받는 방법",
-      correct: "takeout",
-      items: [
-        { id: "store", label: "매장", desc: "HERE", price: 0, mark: "매" },
-        { id: "takeout", label: "포장", desc: "TO-GO", price: 0, mark: "포" },
-        { id: "later", label: "나중에", desc: "WAIT", price: 0, mark: "후" }
-      ]
-    }
+  const hardware = {
+    card: false,
+    receipt: false
+  };
+  const affiliatePhone = {
+    open: false,
+    stage: "locked",
+    done: false
+  };
+  const rewardPhone = {
+    open: false,
+    stage: "locked",
+    done: false,
+    studentNumber: randomStudentNumber()
+  };
+  let flowModalMessage = "";
+  let focusGroupAfterModal = "";
+  let modalAnchorGroup = "";
+  const baseOrder = [{ label: "치즈버거 세트", price: 7200 }];
+  const affiliateApps = [
+    { id: "messages", label: "메시지", desc: "대화", initial: "M", imageKey: "message-app" },
+    { id: "photos", label: "사진", desc: "앨범", initial: "P", imageKey: "photo-app" },
+    { id: "map", label: "지도", desc: "길찾기", initial: "길", imageKey: "map-app" },
+    { id: "bank", label: "뱅크", desc: "계좌", initial: "B", imageKey: "bank-app" },
+    { id: "jammanbo-app", label: "JAMMANBO 멤버십", desc: "멤버십", initial: "J", imageKey: "jammanbo" },
+    { id: "weather", label: "날씨", desc: "예보", initial: "W", imageKey: "weather-app" },
+    { id: "snu-app", label: "SNU 클래스", desc: "수강 인증", initial: "S", imageKey: "snu-class" },
+    { id: "alpaco-vip-app", label: "ALPACO VIP", desc: "할인 바코드", initial: "A", imageKey: "alpaco-vip", correct: true },
+    { id: "settings", label: "설정", desc: "기기", initial: "설", imageKey: "settings-app" },
+    { id: "mail", label: "메일", desc: "편지함", initial: "@", imageKey: "mail-app" },
+    { id: "calendar", label: "캘린더", desc: "일정", initial: "C", imageKey: "calendar-app" },
+    { id: "music", label: "뮤직", desc: "재생", initial: "♪", imageKey: "music-app" }
   ];
+  const groups = isKind
+    ? [
+        {
+          key: "discount",
+          title: "제휴할인",
+          correct: "alpaco-vip",
+          items: [
+            { id: "alpaco-vip", label: "ALPACO VIP", desc: "VIP 할인", price: -700 },
+            { id: "jammanbo", label: "JAMMANBO 멤버십", desc: "앱 멤버십", price: -500 },
+            { id: "snu-class", label: "SNU 클래스", desc: "클래스 인증", price: -300 },
+            { id: "none-discount", label: "제휴할인 없음", desc: "건너뛰기", price: 0, noArt: true }
+          ]
+        },
+        {
+          key: "reward",
+          title: "적립 방법",
+          correct: "snu-reward",
+          items: [
+            { id: "snu-reward", label: "SNU 클래스 적립", desc: "학생번호 입력", price: 0, noArt: true },
+            { id: "none-reward", label: "적립 안 함", desc: "건너뛰기", price: 0, noArt: true }
+          ]
+        },
+        {
+          key: "payment",
+          title: "결제수단",
+          correct: "card",
+          items: [
+            { id: "card", label: "카드 결제", desc: "카드 투입구 사용", price: 0, noArt: true },
+            { id: "easy-pay", label: "간편결제", desc: "앱으로 결제", price: 0, noArt: true }
+          ]
+        }
+      ]
+    : [
+        {
+          key: "discount",
+          title: "STEP 1 제휴할인",
+          correct: "alpaco-vip",
+          items: [
+            { id: "alpaco-vip", label: "ALPACO VIP", desc: "VIP 할인", price: -700 },
+            { id: "jammanbo", label: "JAMMANBO 멤버십", desc: "앱 멤버십", price: -500 },
+            { id: "snu-class", label: "SNU 클래스", desc: "클래스 인증", price: -300 },
+            { id: "none-discount", label: "제휴할인 없음", desc: "건너뛰기", price: 0, noArt: true }
+          ]
+        },
+        {
+          key: "reward",
+          title: "STEP 2 적립 방법",
+          correct: "snu-reward",
+          items: [
+            { id: "phone-reward", label: "휴대폰 번호", desc: "번호 입력", price: 0, noArt: true },
+            { id: "barcode-reward", label: "멤버십 바코드", desc: "스캔", price: 0, noArt: true },
+            { id: "snu-reward", label: "SNU 클래스 적립", desc: "학생번호 입력", price: 0, noArt: true },
+            { id: "none-reward", label: "적립 안 함", desc: "건너뛰기", price: 0, noArt: true }
+          ]
+        },
+        {
+          key: "payment",
+          title: "STEP 3 결제수단",
+          correct: "card",
+          items: [
+            { id: "n-pay", label: "J pay", desc: "앱 결제", price: 0, noArt: true },
+            { id: "app-card", label: "앱카드", desc: "QR/바코드", price: 0, noArt: true },
+            { id: "kakao-pay", label: "카**페이", desc: "앱 결제", price: 0, noArt: true },
+            { id: "payco", label: "PAYCONG", desc: "간편결제", price: 0, noArt: true },
+            { id: "card", label: "카드 결제", desc: "IC페이", price: 0, noArt: true },
+            { id: "zero-pay", label: "zero pay", desc: "간편결제", price: 0, noArt: true },
+            { id: "apple-pay", label: "Orange Pay", desc: "휴대폰 태그", price: 0, noArt: true },
+            { id: "kb-pay", label: "K* Pay", desc: "앱 결제", price: 0, noArt: true },
+            { id: "coupon-pay", label: "쿠폰사용", desc: "쿠폰 번호", price: 0, noArt: true },
+            { id: "gift-card", label: "모바일 상품권", desc: "바코드 스캔", price: 0, noArt: true }
+          ]
+        }
+      ];
 
-  function draw() {
-    const cartItems = selectedCartItems(picks);
-    root.innerHTML = kioskShell({
-      brand: "알파카페",
-      title: isKind ? "카페 주문하기" : "작고 촘촘한 카페 주문",
-      subtitle: "두유 라떼, 따뜻하게, 포장을 선택해 보세요.",
-      mode,
-      status: `${cartItems.length} / 3 선택`,
-      steps: ["음료", "온도", "수령"],
-      activeStep: Math.min(cartItems.length, 2),
-      guide: isKind ? "큰 카드와 분리된 단계 덕분에 손이 흔들려도 다시 고르기 쉽습니다." : "메뉴, 옵션, 포장 버튼이 한 화면에 촘촘히 몰려 있습니다.",
-      cartItems,
-      className: isKind ? "friendly-kiosk" : "dense-kiosk",
-      body: `
-        <div class="dense-order ${isKind ? "is-friendly" : ""}">
-          ${groups
+  function phoneAppIconMarkup(app) {
+    const imageSrc = app.imageKey ? productImages[app.imageKey] : "";
+    if (imageSrc) {
+      return `
+        <span class="phone-app-icon phone-app-image-icon phone-app-image-${app.imageKey}" aria-hidden="true">
+          <img src="${imageSrc}" alt="" loading="lazy">
+        </span>
+      `;
+    }
+    return `<span class="phone-app-icon">${app.initial}</span>`;
+  }
+
+  function affiliatePhonePanel() {
+    const stageCopy = {
+      locked: "스마트폰을 열어서 앱을 찾아봅시다.",
+      apps: "많은 앱 중에서 ALPACO VIP 앱을 찾아 선택해야 합니다.",
+      barcode: "ALPACO VIP 앱 안에서 제휴할인에 필요한 메뉴를 선택해야 합니다.",
+      done: "ALPACO VIP 바코드 인증이 완료되었습니다."
+    };
+    const phoneBody = {
+      locked: `
+        <div class="phone-lock-screen">
+          <span class="phone-clock">10:24</span>
+          <small>ALPACO 제휴할인을 계속하려면 휴대폰을 켜세요.</small>
+          <button class="phone-primary-button" type="button" data-phone-action="wake">스마트폰 켜기</button>
+        </div>
+      `,
+      apps: `
+        <span class="phone-title">홈 화면</span>
+        <div class="phone-app-grid">
+          ${affiliateApps
             .map(
-              (group) => `
-                <section class="dense-section">
-                  <h4>${group.title}</h4>
-                  <div class="product-grid ${isKind ? "" : "tiny-products"}">
-                    ${group.items
-                      .map((item) =>
-                        productCard(
-                          item,
-                          `data-option-key="${group.key}" data-option-id="${item.id}"`,
-                          picks[group.key]?.id === item.id ? "is-picked" : ""
-                        )
-                      )
-                      .join("")}
-                  </div>
-                </section>
+              (app) => `
+                <button class="phone-app-button" type="button" data-affiliate-app="${app.id}">
+                  ${phoneAppIconMarkup(app)}
+                  <b>${app.label}</b>
+                </button>
               `
             )
             .join("")}
         </div>
+      `,
+      barcode: `
+        <span class="phone-title">ALPACO VIP</span>
+        <div class="vip-app-menu">
+          <button class="vip-app-option" type="button" data-phone-action="show-points">
+            <b>포인트 조회</b>
+            <small>잔여 포인트 보기</small>
+          </button>
+          <button class="vip-app-option" type="button" data-phone-action="show-coupons">
+            <b>쿠폰함</b>
+            <small>받은 쿠폰 확인</small>
+          </button>
+          <button class="vip-app-option" type="button" data-phone-action="generate-barcode">
+            <b>바코드 생성</b>
+            <small>제휴할인 인증용</small>
+          </button>
+          <button class="vip-app-option" type="button" data-phone-action="show-history">
+            <b>이용 내역</b>
+            <small>최근 사용 기록</small>
+          </button>
+        </div>
+      `,
+      done: `
+        <span class="phone-title">ALPACO VIP</span>
+        <div class="membership-card is-done">
+          <b>인증 완료</b>
+          <small>제휴할인이 주문 내역에 적용되었습니다.</small>
+          <span class="barcode-visual" aria-label="인증된 멤버십 바코드"></span>
+          <strong>할인 적용</strong>
+        </div>
       `
+    };
+
+    return `
+      <section class="affiliate-phone-panel ${affiliatePhone.done ? "is-done" : ""}">
+        <div>
+          <h4>스마트폰 제휴 앱 인증</h4>
+          <p>${stageCopy[affiliatePhone.stage]}</p>
+        </div>
+        <div class="phone-mock" aria-label="스마트폰 앱 선택 화면">
+          <div class="phone-speaker" aria-hidden="true"></div>
+          <div class="phone-screen">
+            ${phoneBody[affiliatePhone.stage]}
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
+  function rewardPhonePanel() {
+    const stageCopy = {
+      locked: "SNU 클래스 적립을 하려면 스마트폰에서 학생번호를 확인해야 합니다.",
+      apps: "많은 앱 중에서 SNU 클래스 앱을 찾아 선택해야 합니다.",
+      student: "앱에 표시된 학생번호를 키오스크 입력칸에 그대로 입력하세요.",
+      done: "학생번호 확인이 완료되어 SNU 클래스 적립이 적용되었습니다."
+    };
+    const phoneBody = {
+      locked: `
+        <div class="phone-lock-screen">
+          <span class="phone-clock">10:24</span>
+          <small>SNU 클래스 적립을 계속하려면 휴대폰을 켜세요.</small>
+          <button class="phone-primary-button" type="button" data-reward-phone-action="wake">스마트폰 켜기</button>
+        </div>
+      `,
+      apps: `
+        <span class="phone-title">홈 화면</span>
+        <div class="phone-app-grid">
+          ${affiliateApps
+            .map(
+              (app) => `
+                <button class="phone-app-button" type="button" data-reward-app="${app.id}">
+                  ${phoneAppIconMarkup(app)}
+                  <b>${app.label}</b>
+                </button>
+              `
+            )
+            .join("")}
+        </div>
+      `,
+      student: `
+        <div class="phone-app-header">
+          ${productImageMarkup(productImages["snu-class"], "phone-app-logo")}
+          <span class="phone-title">SNU 클래스</span>
+        </div>
+        <div class="student-id-card">
+          <b>학생번호</b>
+          <strong>${rewardPhone.studentNumber}</strong>
+          <small>대문자 영어와 숫자를 정확히 입력해야 합니다.</small>
+        </div>
+      `,
+      done: `
+        <div class="phone-app-header">
+          ${productImageMarkup(productImages["snu-class"], "phone-app-logo")}
+          <span class="phone-title">SNU 클래스</span>
+        </div>
+        <div class="student-id-card is-done">
+          <b>적립 완료</b>
+          <strong>${rewardPhone.studentNumber}</strong>
+          <small>학생번호가 확인되었습니다.</small>
+        </div>
+      `
+    };
+
+    return `
+      <section class="reward-phone-panel ${rewardPhone.done ? "is-done" : ""}">
+        <div>
+          <h4>스마트폰 SNU 클래스 적립</h4>
+          <p>${stageCopy[rewardPhone.stage]}</p>
+        </div>
+        <div class="phone-mock" aria-label="스마트폰 SNU 클래스 앱 화면">
+          <div class="phone-speaker" aria-hidden="true"></div>
+          <div class="phone-screen">
+            ${phoneBody[rewardPhone.stage]}
+          </div>
+        </div>
+        ${
+          rewardPhone.stage === "student"
+            ? `
+              <form class="student-id-entry" data-student-id-form="true">
+                <label for="studentIdInput">키오스크 학생번호 입력</label>
+                <input id="studentIdInput" type="text" inputmode="text" autocomplete="off" maxlength="12" placeholder="예: A7K2M9Q4" data-student-id-input="true" />
+                <button class="phone-primary-button" type="submit">입력 완료</button>
+              </form>
+            `
+            : ""
+        }
+      </section>
+    `;
+  }
+
+  function paymentHardwarePanel(optionReady) {
+    const barcodeActive = affiliatePhone.stage === "scan" && !affiliatePhone.done;
+    const cardDragActive = optionReady && !barcodeActive && !hardware.card;
+    const hint = barcodeActive
+      ? "바코드가 생성된 스마트폰을 바코드 인식하는 곳으로 끌어다 놓으세요."
+      : cardDragActive
+        ? "결제 카드를 카드 넣는 곳으로 끌어다 놓으세요."
+        : "";
+
+    return `
+      <section class="payment-hardware ${optionReady ? "is-ready" : ""} ${barcodeActive ? "is-barcode-stage" : ""} ${cardDragActive ? "is-card-stage" : ""}">
+        <h4>키오스크 앞면</h4>
+        ${hint ? `<p class="payment-hardware-hint">${hint}</p>` : ""}
+        <div class="hardware-actions">
+          <button class="hardware-button barcode-target ${hardware.card ? "is-done" : ""}" type="button" data-hardware="card" data-barcode-target="card" data-card-target="slot">
+            <span class="hardware-device-group">
+              <span class="hardware-image hardware-card-slot" aria-hidden="true">
+                <img src="${productImages["hardware-card-slot"]}" alt="" loading="lazy">
+              </span>
+              <b>카드 넣는 곳</b>
+            </span>
+          </button>
+          <button class="hardware-button barcode-target ${hardware.receipt ? "is-done" : ""}" type="button" data-hardware="receipt" data-barcode-target="receipt">
+            <span class="hardware-device-group">
+              <span class="hardware-image hardware-receipt" aria-hidden="true">
+                <img src="${productImages["hardware-receipt"]}" alt="" loading="lazy">
+              </span>
+              <b>영수증/번호표 챙기기</b>
+            </span>
+          </button>
+          <button class="hardware-button barcode-target" type="button" data-barcode-target="scanner">
+            <span class="hardware-device-group">
+              <span class="hardware-image hardware-barcode" aria-hidden="true">
+                <img src="${productImages["hardware-barcode"]}" alt="" loading="lazy">
+              </span>
+              <b>바코드 인식하는 곳</b>
+            </span>
+          </button>
+        </div>
+        ${
+          cardDragActive
+            ? `
+              <div class="card-drag-zone">
+                <div class="payment-card-hand" data-draggable-card="true" data-card-anchor-x="0.5" data-card-anchor-y="0.5" aria-label="결제 카드를 카드 넣는 곳으로 끌어다 놓기">
+                  <img src="${productImages["payment-card-hand"]}" alt="" draggable="false">
+                </div>
+              </div>
+            `
+            : ""
+        }
+      </section>
+    `;
+  }
+
+  function affiliateScanPanel(optionReady) {
+    return `
+      <div class="payment-flow scan-payment-flow">
+        <section class="dense-section payment-section scan-payment-section">
+          <h4>제휴할인 바코드 인식</h4>
+          <p class="scan-payment-hint">바코드가 생성된 스마트폰을 아래 키오스크 앞면의 바코드 인식하는 곳으로 끌어다 대세요.</p>
+          <div class="scan-payment-layout">
+            <div class="phone-mock scan-phone-mock" aria-label="드래그 가능한 ALPACO VIP 스마트폰" data-draggable-barcode="true">
+              <div class="phone-speaker" aria-hidden="true"></div>
+              <div class="phone-screen">
+                <span class="phone-title">ALPACO VIP</span>
+                <div class="membership-card">
+                  <b>VIP 멤버십</b>
+                  <small>이 스마트폰을 바코드 인식하는 곳으로 끌어다 대세요.</small>
+                  <span class="barcode-visual" aria-label="멤버십 바코드"></span>
+                  <strong>APC-2026-0506</strong>
+                </div>
+              </div>
+            </div>
+            ${paymentHardwarePanel(optionReady)}
+          </div>
+        </section>
+      </div>
+    `;
+  }
+
+  function flowModal(message) {
+    return `
+      <div class="flow-modal-backdrop" role="dialog" aria-modal="true" aria-label="${message}">
+        <div class="flow-modal">
+          <h4>${message}</h4>
+          <button class="phone-primary-button" type="button" data-flow-modal-close="true">확인</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function applyAffiliateDiscount() {
+    const discountGroup = groups.find((item) => item.key === "discount");
+    picks.discount = discountGroup.items.find((item) => item.id === "alpaco-vip");
+    affiliatePhone.done = true;
+    affiliatePhone.stage = "done";
+    affiliatePhone.open = false;
+    flowModalMessage = "제휴인증에 성공했습니다";
+    focusGroupAfterModal = "reward";
+    modalAnchorGroup = "discount";
+    draw({ focusGroup: "discount" });
+  }
+
+  function applySnuReward() {
+    const rewardGroup = groups.find((item) => item.key === "reward");
+    picks.reward = rewardGroup.items.find((item) => item.id === "snu-reward");
+    rewardPhone.done = true;
+    rewardPhone.stage = "done";
+    rewardPhone.open = false;
+    flowModalMessage = "적립에 성공했습니다";
+    focusGroupAfterModal = "payment";
+    modalAnchorGroup = "reward";
+    draw({ focusGroup: "reward" });
+  }
+
+  function setupBarcodeDrag() {
+    const barcode = root.querySelector("[data-draggable-barcode]");
+    if (!barcode) return;
+
+    let activeTarget = null;
+    const setActiveTarget = (target) => {
+      if (activeTarget && activeTarget !== target) activeTarget.classList.remove("is-targeted");
+      activeTarget = target;
+      if (activeTarget) activeTarget.classList.add("is-targeted");
+    };
+
+    barcode.addEventListener("pointerdown", (event) => {
+      if (typeof event.button === "number" && event.button !== 0) return;
+      event.preventDefault();
+
+      let lastX = event.clientX;
+      let lastY = event.clientY;
+      const dragGhost = barcode.cloneNode(true);
+      dragGhost.removeAttribute("data-draggable-barcode");
+      dragGhost.classList.add("barcode-drag-ghost");
+      document.body.appendChild(dragGhost);
+      barcode.classList.add("is-drag-source");
+      document.body.classList.add("is-dragging-barcode");
+
+      const moveGhost = (x, y) => {
+        dragGhost.style.left = `${x}px`;
+        dragGhost.style.top = `${y}px`;
+      };
+
+      const onMove = (moveEvent) => {
+        lastX = moveEvent.clientX;
+        lastY = moveEvent.clientY;
+        moveGhost(lastX, lastY);
+        const target = document.elementFromPoint(lastX, lastY)?.closest("[data-barcode-target]");
+        setActiveTarget(target);
+      };
+
+      const onEnd = () => {
+        window.removeEventListener("pointermove", onMove);
+        window.removeEventListener("pointerup", onEnd);
+        window.removeEventListener("pointercancel", onEnd);
+
+        const target = document.elementFromPoint(lastX, lastY)?.closest("[data-barcode-target]");
+        dragGhost.remove();
+        barcode.classList.remove("is-drag-source");
+        document.body.classList.remove("is-dragging-barcode");
+        setActiveTarget(null);
+
+        if (!target) {
+          recordBarrier("바코드를 키오스크의 인식부까지 직접 가져다대야 합니다.");
+          return;
+        }
+        if (target.dataset.barcodeTarget !== "scanner") {
+          recordBarrier("카드 투입구나 영수증 출력구가 아니라 바코드 인식하는 곳에 대야 합니다.");
+          return;
+        }
+        applyAffiliateDiscount();
+      };
+
+      moveGhost(lastX, lastY);
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onEnd);
+      window.addEventListener("pointercancel", onEnd);
     });
+  }
+
+  function setupCardDrag() {
+    const card = root.querySelector("[data-draggable-card]");
+    if (!card) return;
+
+    let activeTarget = null;
+    const setActiveTarget = (target) => {
+      if (activeTarget && activeTarget !== target) activeTarget.classList.remove("is-card-targeted");
+      activeTarget = target;
+      if (activeTarget) activeTarget.classList.add("is-card-targeted");
+    };
+
+    card.addEventListener("pointerdown", (event) => {
+      if (typeof event.button === "number" && event.button !== 0) return;
+      event.preventDefault();
+
+      const anchorX = Number.parseFloat(card.dataset.cardAnchorX || "0.35");
+      const anchorY = Number.parseFloat(card.dataset.cardAnchorY || "0.26");
+      const sourceRect = card.getBoundingClientRect();
+      let lastX = event.clientX;
+      let lastY = event.clientY;
+      const dragGhost = card.cloneNode(true);
+      dragGhost.removeAttribute("data-draggable-card");
+      dragGhost.classList.add("card-drag-ghost");
+      dragGhost.style.width = `${sourceRect.width}px`;
+      dragGhost.style.height = `${sourceRect.height}px`;
+      document.body.appendChild(dragGhost);
+      card.classList.add("is-drag-source");
+      document.body.classList.add("is-dragging-card");
+
+      const moveGhost = (x, y) => {
+        dragGhost.style.left = `${x - sourceRect.width * anchorX}px`;
+        dragGhost.style.top = `${y - sourceRect.height * anchorY}px`;
+      };
+
+      const onMove = (moveEvent) => {
+        lastX = moveEvent.clientX;
+        lastY = moveEvent.clientY;
+        moveGhost(lastX, lastY);
+        const target = document.elementFromPoint(lastX, lastY)?.closest("[data-card-target]");
+        setActiveTarget(target);
+      };
+
+      const onEnd = () => {
+        window.removeEventListener("pointermove", onMove);
+        window.removeEventListener("pointerup", onEnd);
+        window.removeEventListener("pointercancel", onEnd);
+
+        const target = document.elementFromPoint(lastX, lastY)?.closest("[data-card-target]");
+        dragGhost.remove();
+        card.classList.remove("is-drag-source");
+        document.body.classList.remove("is-dragging-card");
+        setActiveTarget(null);
+
+        if (!target || target.dataset.cardTarget !== "slot") {
+          recordBarrier("카드의 가운데 부분을 카드 넣는 곳까지 직접 가져다 놓아야 합니다.");
+          return;
+        }
+
+        hardware.card = true;
+        flowModalMessage = "영수증을 챙겨주세요";
+        focusGroupAfterModal = "";
+        modalAnchorGroup = "";
+        draw({ preserveScroll: true });
+      };
+
+      moveGhost(lastX, lastY);
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onEnd);
+      window.addEventListener("pointercancel", onEnd);
+    });
+  }
+
+  function draw(options = {}) {
+    const scrollState = options.preserveScroll ? captureKioskScroll(root) : null;
+    const selectedOptions = selectedCartItems(picks);
+    const cartItems = [...baseOrder, ...selectedOptions];
+    const optionReady = selectedOptions.length === groups.length;
+    const doneCount = selectedOptions.length + (hardware.card ? 1 : 0) + (hardware.receipt ? 1 : 0);
+    const modalNextGroupIndex = flowModalMessage ? groups.findIndex((group) => group.key === focusGroupAfterModal) : -1;
+    const activePaymentStep = modalNextGroupIndex > 0 ? modalNextGroupIndex - 1 : Math.min(doneCount, 4);
+    const affiliatePhoneFocus = affiliatePhone.open && !affiliatePhone.done && ["locked", "apps", "barcode"].includes(affiliatePhone.stage);
+    const affiliateScanFocus = affiliatePhone.open && !affiliatePhone.done && affiliatePhone.stage === "scan";
+    const rewardPhoneFocus = rewardPhone.open && !rewardPhone.done && ["locked", "apps", "student"].includes(rewardPhone.stage);
+    const hardwareFocus = picks.payment?.id === "card" && optionReady;
+    const kioskClassName = [
+      isKind ? "friendly-kiosk payment-kiosk" : "busy-payment-kiosk payment-kiosk",
+      affiliatePhoneFocus || rewardPhoneFocus ? "phone-focus-kiosk" : "",
+      affiliateScanFocus ? "barcode-scan-kiosk" : "",
+      hardwareFocus ? "hardware-focus-kiosk" : ""
+    ].filter(Boolean).join(" ");
+    const paymentBodyContent = affiliatePhoneFocus
+      ? `<div class="phone-focus-flow">${affiliatePhonePanel()}</div>`
+      : affiliateScanFocus
+        ? affiliateScanPanel(optionReady)
+        : rewardPhoneFocus
+          ? `<div class="phone-focus-flow">${rewardPhonePanel()}</div>`
+          : hardwareFocus
+            ? `<div class="hardware-focus-flow">${paymentHardwarePanel(optionReady)}</div>`
+          : `
+          <div class="payment-flow ${isKind ? "is-friendly" : ""}">
+            ${groups
+              .map(
+                (group) => `
+                  <section class="dense-section payment-section" data-payment-group="${group.key}">
+                    <h4>${group.title}</h4>
+                    <div class="product-grid payment-options">
+                      ${group.items
+                        .map((item) =>
+                          productCard(
+                            item,
+                            `data-option-key="${group.key}" data-option-id="${item.id}"`,
+                            picks[group.key]?.id === item.id ? "is-picked" : ""
+                          )
+                        )
+                        .join("")}
+                    </div>
+                    ${flowModalMessage && modalAnchorGroup === group.key ? flowModal(flowModalMessage) : ""}
+                  </section>
+                `
+              )
+              .join("")}
+          </div>
+        `;
+    const modalInsideSection = flowModalMessage && modalAnchorGroup && !affiliatePhoneFocus && !affiliateScanFocus && !rewardPhoneFocus && !hardwareFocus;
+    const paymentBody = `${paymentBodyContent}${flowModalMessage && !modalInsideSection ? flowModal(flowModalMessage) : ""}`;
+    root.innerHTML = kioskShell({
+      brand: "모두페이",
+      title: isKind ? "차근차근 결제하기" : "복잡한 결제 화면",
+      subtitle: "",
+      mode,
+      status: `${doneCount} / 5 완료`,
+      steps: ["할인", "적립", "결제", "카드", "영수증"],
+      activeStep: activePaymentStep,
+      guide: isKind ? "필요한 선택지만 단계별로 보여 주고, 기기에서 해야 할 일도 함께 안내합니다." : "",
+      cartItems,
+      className: kioskClassName,
+      body: paymentBody
+    });
+    restoreKioskScroll(root, scrollState);
+    setupBarcodeDrag();
+    setupCardDrag();
+
+    const focusGroup = options.focusGroup || "";
+    if (focusGroup) {
+      const focusTarget = root.querySelector(`[data-payment-group="${focusGroup}"]`);
+      if (focusTarget) {
+        window.requestAnimationFrame(() => focusTarget.scrollIntoView({ block: "start", behavior: "smooth" }));
+      }
+    }
+
+    const modalClose = root.querySelector("[data-flow-modal-close]");
+    if (modalClose) {
+      modalClose.addEventListener("click", () => {
+        const nextFocus = focusGroupAfterModal;
+        flowModalMessage = "";
+        focusGroupAfterModal = "";
+        modalAnchorGroup = "";
+        if (nextFocus) {
+          draw({ focusGroup: nextFocus });
+        } else {
+          draw({ preserveScroll: true });
+        }
+      });
+    }
 
     root.querySelectorAll("[data-option-key]").forEach((button) => {
       button.addEventListener("click", () => {
         const group = groups.find((item) => item.key === button.dataset.optionKey);
         const selected = group.items.find((item) => item.id === button.dataset.optionId);
         if (!selected) return;
-        if (selected.id !== group.correct && !isKind) {
-          recordBarrier("버튼이 작고 가까워서 다른 메뉴나 옵션을 누르기 쉽습니다.");
+        if (selected.id !== group.correct) {
+          recordBarrier(isKind ? "목표와 다른 선택입니다. 안내를 다시 확인해 보세요." : "선택지가 너무 많아 필요한 결제 절차를 찾기 어렵습니다.");
           return;
         }
-        if (selected.id !== group.correct) {
-          recordBarrier("선택 조건을 다시 확인해 보세요.");
+        if (group.key === "discount" && selected.id === "alpaco-vip" && !affiliatePhone.done) {
+          affiliatePhone.open = true;
+          affiliatePhone.stage = "locked";
+          draw({ preserveScroll: true });
+          return;
+        }
+        if (group.key === "reward" && selected.id === "snu-reward" && !rewardPhone.done) {
+          if (!rewardPhone.open) {
+            rewardPhone.studentNumber = randomStudentNumber();
+          }
+          rewardPhone.open = true;
+          rewardPhone.stage = "locked";
+          draw({ preserveScroll: true });
           return;
         }
         picks[group.key] = selected;
-        if (Object.keys(picks).length === groups.length) {
-          completeStation("작은 터치 영역은 손 떨림이 있는 사람에게 큰 장벽이 됩니다.");
-          showCompletion(root, "실제 주문 화면에서는 버튼 크기와 간격이 주문 성공을 좌우합니다.");
+        if (group.key === "payment" && selected.id === "card") {
+          draw();
           return;
         }
-        draw();
+        draw({ preserveScroll: true });
+      });
+    });
+
+    root.querySelectorAll("[data-phone-action]").forEach((button) => {
+      button.addEventListener("click", () => {
+        if (button.dataset.phoneAction === "wake") {
+          affiliatePhone.stage = "apps";
+          draw({ preserveScroll: true });
+          return;
+        }
+        if (["show-points", "show-coupons", "show-history"].includes(button.dataset.phoneAction)) {
+          recordBarrier("제휴할인에는 포인트나 쿠폰함이 아니라 바코드 생성 메뉴가 필요합니다.");
+          return;
+        }
+        if (button.dataset.phoneAction === "generate-barcode") {
+          affiliatePhone.stage = "scan";
+          draw({ preserveScroll: true });
+        }
+      });
+    });
+
+    root.querySelectorAll("[data-barcode-target]").forEach((button) => {
+      button.addEventListener("click", () => {
+        if (affiliatePhone.stage !== "scan" || affiliatePhone.done) return;
+        recordBarrier("바코드는 버튼처럼 누르는 것이 아니라, 스마트폰 화면을 인식부에 가져다대야 합니다.");
+      });
+    });
+
+    root.querySelectorAll("[data-affiliate-app]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const app = affiliateApps.find((item) => item.id === button.dataset.affiliateApp);
+        if (!app) return;
+        if (!app.correct) {
+          recordBarrier("키오스크의 제휴할인 이름과 스마트폰 앱 이름을 다시 맞춰야 합니다.");
+          return;
+        }
+        affiliatePhone.stage = "barcode";
+        affiliatePhone.open = true;
+        draw({ preserveScroll: true });
+      });
+    });
+
+    root.querySelectorAll("[data-reward-phone-action]").forEach((button) => {
+      button.addEventListener("click", () => {
+        if (button.dataset.rewardPhoneAction === "wake") {
+          rewardPhone.stage = "apps";
+          draw({ preserveScroll: true });
+        }
+      });
+    });
+
+    root.querySelectorAll("[data-reward-app]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const app = affiliateApps.find((item) => item.id === button.dataset.rewardApp);
+        if (!app) return;
+        if (app.id !== "snu-app") {
+          recordBarrier("적립하려는 서비스와 같은 SNU 클래스 앱을 찾아야 학생번호를 확인할 수 있습니다.");
+          return;
+        }
+        rewardPhone.stage = "student";
+        rewardPhone.open = true;
+        draw({ preserveScroll: true });
+      });
+    });
+
+    const studentIdForm = root.querySelector("[data-student-id-form]");
+    if (studentIdForm) {
+      studentIdForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const input = root.querySelector("[data-student-id-input]");
+        const value = input ? input.value.trim().toUpperCase() : "";
+        if (value !== rewardPhone.studentNumber) {
+          recordBarrier("스마트폰 앱에 표시된 대문자 영어와 숫자를 키오스크에 정확히 입력해야 합니다.");
+          if (input) input.focus();
+          return;
+        }
+        applySnuReward();
+      });
+    }
+
+    root.querySelectorAll("[data-hardware]").forEach((button) => {
+      button.addEventListener("click", () => {
+        if (affiliatePhone.stage === "scan" && !affiliatePhone.done) {
+          return;
+        }
+        if (!optionReady) {
+          recordBarrier("할인, 적립, 결제수단을 먼저 통과해야 기기 조작을 할 수 있습니다.");
+          return;
+        }
+        if (button.dataset.hardware === "card") {
+          if (!hardware.card) {
+            recordBarrier("결제 카드를 카드 넣는 곳으로 끌어다 놓아야 합니다.");
+          }
+          return;
+        }
+        if (!hardware.card) {
+          recordBarrier("결제 카드를 넣은 뒤 영수증과 번호표가 나오는 곳을 확인해야 합니다.");
+          return;
+        }
+        hardware.receipt = true;
+        completeStation("결제 단계가 많고 기기 조작 위치가 흩어져 있으면 마지막까지 놓치기 쉽습니다.");
+        showCompletion(root, "결제 화면은 할인, 적립, 결제, 카드 투입, 영수증 수령을 한 단계씩 명확하게 안내해야 합니다.");
       });
     });
 
     root.querySelector("[data-cart-action]").addEventListener("click", () => {
-      recordBarrier("음료, 온도, 받는 방법을 모두 선택해야 결제할 수 있습니다.");
+      if (!optionReady) {
+        recordBarrier("제휴할인, 적립 방법, 결제수단을 모두 선택해야 합니다.");
+        return;
+      }
+      if (!hardware.card) {
+        recordBarrier("결제 카드를 먼저 카드 넣는 곳으로 끌어다 놓아야 합니다.");
+        root.querySelector("[data-draggable-card]")?.scrollIntoView({ block: "center", behavior: "smooth" });
+        return;
+      }
+      root.querySelector("[data-hardware='receipt']").click();
     });
   }
 
@@ -848,7 +1568,9 @@ function renderAlienStation(root, mode) {
           items: [
             { id: "barley-hot", label: "따뜻한 보리차", desc: "카페인이 적은 차", price: 2500, visual: "cup" },
             { id: "barley-ice", label: "차가운 보리차", desc: "얼음 포함", price: 2500, visual: "cup" },
-            { id: "milk", label: "딸기 우유", desc: "달콤한 우유", price: 3200, visual: "cup" }
+            { id: "milk", label: "딸기 우유", desc: "달콤한 우유", price: 3200, visual: "cup" },
+            { id: "citron-hot", label: "따뜻한 유자차", desc: "달콤한 과일차", price: 3000, visual: "cup" },
+            { id: "ice-tea", label: "아이스티", desc: "차가운 홍차", price: 2800, visual: "cup" }
           ]
         },
         {
@@ -875,47 +1597,50 @@ function renderAlienStation(root, mode) {
     : [
         {
           key: "drink",
-          title: "DRK",
-          correct: "b-th",
+          title: "Beverage",
+          correct: "barley-hot-hard",
           items: [
-            { id: "ice-b", label: "ICE-B", desc: "B02", price: 2500, visual: "cup" },
-            { id: "b-th", label: "B-TH", desc: "T-HOT", price: 2500, visual: "cup" },
-            { id: "st-mk", label: "ST-MK", desc: "M07", price: 3200, visual: "cup" }
+            { id: "barley-ice-hard", label: "Iced Barley Tea", price: 2500, noArt: true },
+            { id: "barley-hot-hard", label: "Hot Barley Tea", price: 2500, noArt: true },
+            { id: "milk-hard", label: "Strawberry Milk", price: 3200, noArt: true },
+            { id: "citron-hot-hard", label: "Hot Citron Tea", price: 3000, noArt: true },
+            { id: "ice-tea-hard", label: "Iced Tea", price: 2800, noArt: true }
           ]
         },
         {
           key: "serve",
-          title: "WAY",
-          correct: "t-out",
+          title: "Pickup",
+          correct: "takeout-hard",
           items: [
-            { id: "in-h", label: "IN-H", desc: "H01", price: 0, mark: "I" },
-            { id: "t-out", label: "T-OUT", desc: "T02", price: 0, mark: "T" },
-            { id: "l-pk", label: "L-PK", desc: "L03", price: 0, mark: "L" }
+            { id: "here-hard", label: "Eat In", price: 0, noArt: true },
+            { id: "later-hard", label: "Pick Up Later", price: 0, noArt: true },
+            { id: "takeout-hard", label: "Take Out", price: 0, noArt: true }
           ]
         },
         {
           key: "sugar",
-          title: "SW",
-          correct: "s-0",
+          title: "Sweetness",
+          correct: "no-sugar-hard",
           items: [
-            { id: "s-2", label: "S-2", desc: "SW2", price: 0, mark: "2" },
-            { id: "s-0", label: "S-0", desc: "SW0", price: 0, mark: "0" },
-            { id: "s-m", label: "S-M", desc: "SWM", price: 0, mark: "M" }
+            { id: "no-sugar-hard", label: "No Sugar", price: 0, noArt: true },
+            { id: "regular-hard", label: "Regular Sweet", price: 0, noArt: true },
+            { id: "extra-sweet-hard", label: "Extra Sweet", price: 0, noArt: true }
           ]
         }
       ];
 
-  function draw() {
+  function draw(options = {}) {
+    const scrollState = options.preserveScroll ? captureKioskScroll(root) : null;
     const cartItems = selectedCartItems(picks);
     root.innerHTML = kioskShell({
       brand: "모두티",
-      title: isKind ? "쉬운 말로 주문하기" : "코드 메뉴 주문하기",
-      subtitle: isKind ? "따뜻한 보리차, 포장, 설탕 없음을 고릅니다." : "B-TH, T-OUT, S-0을 찾아야 합니다.",
+      title: isKind ? "쉬운 말로 주문하기" : "낯선 말로 주문하기",
+      subtitle: isKind ? "따뜻한 보리차, 포장, 설탕 없음을 고릅니다." : "영어와 짧은 안내만 보고 목표 옵션을 찾아야 합니다.",
       mode,
       status: `${cartItems.length} / 3 선택`,
       steps: ["음료", "수령", "옵션"],
       activeStep: Math.min(cartItems.length, 2),
-      guide: isKind ? "메뉴 이름과 설명을 함께 보여 줍니다." : "줄임말과 코드만 있어 의미를 추측해야 합니다.",
+      guide: isKind ? "메뉴 이름과 설명을 함께 보여 줍니다." : "",
       cartItems,
       className: isKind ? "friendly-kiosk" : "alien-kiosk",
       body: `
@@ -946,6 +1671,7 @@ function renderAlienStation(root, mode) {
         </div>
       `
     });
+    restoreKioskScroll(root, scrollState);
 
     root.querySelectorAll("[data-option-key]").forEach((button) => {
       button.addEventListener("click", () => {
@@ -953,16 +1679,16 @@ function renderAlienStation(root, mode) {
         const selected = group.items.find((item) => item.id === button.dataset.optionId);
         if (!selected) return;
         if (selected.id !== group.correct) {
-          recordBarrier(isKind ? "선택 조건을 다시 읽어 보세요." : "코드와 줄임말만 보고는 원하는 메뉴를 알아내기 어렵습니다.");
+          recordBarrier(isKind ? "선택 조건을 다시 읽어 보세요." : "버튼을 못 누른 것이 아니라, 화면의 말이 충분히 친절하지 않았습니다.");
           return;
         }
         picks[group.key] = selected;
         if (Object.keys(picks).length === groups.length) {
-          completeStation(isKind ? "쉬운 말과 설명이 있으면 처음 보는 메뉴도 고를 수 있습니다." : "어려운 말은 디지털 문해력이 낮은 사람에게 주문 장벽이 됩니다.");
+          completeStation(isKind ? "쉬운 말과 설명이 있으면 처음 보는 메뉴도 고를 수 있습니다." : "낯선 말과 부족한 설명은 디지털 기기가 익숙하지 않은 사람에게 주문 장벽이 됩니다.");
           showCompletion(root, "실제 주문 화면에서도 쉬운 말과 그림 설명이 필요합니다.");
           return;
         }
-        draw();
+        draw({ preserveScroll: true });
       });
     });
 
@@ -1175,12 +1901,12 @@ function renderSummary() {
     .join("");
 }
 
-els.startButton.addEventListener("click", () => openStation(stations[0].id));
-els.restartButton.addEventListener("click", () => {
-  state.currentId = null;
-  showView("home");
-  renderProgress();
+els.startButton.addEventListener("click", () => {
+  els.stationCards.scrollIntoView({ block: "start", behavior: "smooth" });
+  els.stationCards.querySelector("[data-station]")?.focus({ preventScroll: true });
 });
+els.restartButton.addEventListener("click", returnHome);
+els.stationBackButton.addEventListener("click", returnHome);
 
 els.challengeMode.addEventListener("click", () => {
   state.mode = "challenge";
