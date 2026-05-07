@@ -477,6 +477,17 @@ function selectedCartItems(values) {
   return Object.values(values).filter(Boolean);
 }
 
+function flowModal(message) {
+  return `
+    <div class="flow-modal-backdrop" role="dialog" aria-modal="true" aria-label="${message}">
+      <div class="flow-modal">
+        <h4>${message}</h4>
+        <button class="phone-primary-button" type="button" data-flow-modal-close="true">확인</button>
+      </div>
+    </div>
+  `;
+}
+
 function randomStudentNumber(length = 8) {
   const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const digits = "0123456789";
@@ -948,7 +959,7 @@ function renderTinyStation(root, mode) {
 
     return `
       <section class="affiliate-phone-panel ${affiliatePhone.done ? "is-done" : ""}">
-        <div>
+        <div class="phone-panel-copy">
           <h4>스마트폰 제휴 앱 인증</h4>
           <p>${stageCopy[affiliatePhone.stage]}</p>
         </div>
@@ -969,6 +980,15 @@ function renderTinyStation(root, mode) {
       student: "앱에 표시된 학생번호를 키오스크 입력칸에 그대로 입력하세요.",
       done: "학생번호 확인이 완료되어 SNU 클래스 적립이 적용되었습니다."
     };
+    const isStudentEntry = rewardPhone.stage === "student";
+    const rewardIntro = isStudentEntry
+      ? ""
+      : `
+        <div class="phone-panel-copy">
+          <h4>스마트폰 SNU 클래스 적립</h4>
+          <p>${stageCopy[rewardPhone.stage]}</p>
+        </div>
+      `;
     const phoneBody = {
       locked: `
         <div class="phone-lock-screen">
@@ -993,9 +1013,13 @@ function renderTinyStation(root, mode) {
         </div>
       `,
       student: `
-        <div class="phone-app-header">
+        <div class="phone-app-header reward-phone-app-header">
           ${productImageMarkup(productImages["snu-class"], "phone-app-logo")}
-          <span class="phone-title">SNU 클래스</span>
+          <span class="reward-phone-app-title">
+            <span class="phone-title">SNU 클래스</span>
+            <small>스마트폰 SNU 클래스 적립</small>
+            <em>${stageCopy.student}</em>
+          </span>
         </div>
         <div class="student-id-card">
           <b>학생번호</b>
@@ -1017,11 +1041,8 @@ function renderTinyStation(root, mode) {
     };
 
     return `
-      <section class="reward-phone-panel ${rewardPhone.done ? "is-done" : ""}">
-        <div>
-          <h4>스마트폰 SNU 클래스 적립</h4>
-          <p>${stageCopy[rewardPhone.stage]}</p>
-        </div>
+      <section class="reward-phone-panel ${rewardPhone.done ? "is-done" : ""} ${isStudentEntry ? "has-student-entry" : ""}">
+        ${rewardIntro}
         <div class="phone-mock" aria-label="스마트폰 SNU 클래스 앱 화면">
           <div class="phone-speaker" aria-hidden="true"></div>
           <div class="phone-screen">
@@ -1029,7 +1050,7 @@ function renderTinyStation(root, mode) {
           </div>
         </div>
         ${
-          rewardPhone.stage === "student"
+          isStudentEntry
             ? `
               <form class="student-id-entry" data-student-id-form="true">
                 <label for="studentIdInput">키오스크 학생번호 입력</label>
@@ -1123,17 +1144,6 @@ function renderTinyStation(root, mode) {
     `;
   }
 
-  function flowModal(message) {
-    return `
-      <div class="flow-modal-backdrop" role="dialog" aria-modal="true" aria-label="${message}">
-        <div class="flow-modal">
-          <h4>${message}</h4>
-          <button class="phone-primary-button" type="button" data-flow-modal-close="true">확인</button>
-        </div>
-      </div>
-    `;
-  }
-
   function applyAffiliateDiscount() {
     const discountGroup = groups.find((item) => item.key === "discount");
     picks.discount = discountGroup.items.find((item) => item.id === "alpaco-vip");
@@ -1169,7 +1179,7 @@ function renderTinyStation(root, mode) {
       }
       activeTarget = target;
       if (activeTarget) {
-        activeTarget.classList.add("is-targeted", activeTarget.dataset.barcodeTarget === "scanner" ? "is-drop-correct" : "is-drop-wrong");
+        activeTarget.classList.add("is-targeted");
       }
     };
 
@@ -1180,7 +1190,7 @@ function renderTinyStation(root, mode) {
       let lastX = event.clientX;
       let lastY = event.clientY;
       const sourceRect = barcode.getBoundingClientRect();
-      const ghostWidth = Math.max(130, Math.min(sourceRect.width * 0.54, 190, window.innerWidth * 0.34));
+      const ghostWidth = Math.max(145, Math.min(sourceRect.width * 0.5, 200, window.innerWidth * 0.38));
       const dragGhost = barcode.cloneNode(true);
       dragGhost.removeAttribute("data-draggable-barcode");
       dragGhost.classList.add("barcode-drag-ghost");
@@ -1243,7 +1253,7 @@ function renderTinyStation(root, mode) {
       }
       activeTarget = target;
       if (activeTarget) {
-        activeTarget.classList.add("is-card-targeted", activeTarget.dataset.cardTarget === "slot" ? "is-drop-correct" : "is-drop-wrong");
+        activeTarget.classList.add("is-card-targeted");
       }
     };
 
@@ -1603,6 +1613,8 @@ function renderFriendlyPicker(root, config) {
 function renderAlienStation(root, mode) {
   const isKind = mode === "kind";
   const picks = {};
+  let alienSuccessMessage = "";
+  let alienSuccessAction = "";
   const groups = isKind
     ? [
         {
@@ -1676,6 +1688,9 @@ function renderAlienStation(root, mode) {
   function draw(options = {}) {
     const scrollState = options.preserveScroll ? captureKioskScroll(root) : null;
     const cartItems = selectedCartItems(picks);
+    const nextGroupIndex = groups.findIndex((group) => !picks[group.key]);
+    const activeGroupIndex = nextGroupIndex === -1 ? groups.length - 1 : nextGroupIndex;
+    const activeGroup = groups[activeGroupIndex];
     root.innerHTML = kioskShell({
       brand: "모두티",
       title: isKind ? "쉬운 말로 주문하기" : "낯선 말로 주문하기",
@@ -1683,7 +1698,7 @@ function renderAlienStation(root, mode) {
       mode,
       status: `${cartItems.length} / 3 선택`,
       steps: ["음료", "수령", "옵션"],
-      activeStep: Math.min(cartItems.length, 2),
+      activeStep: activeGroupIndex,
       guide: isKind
         ? "따뜻한 보리차, 포장, 설탕 없음을 쉬운 말과 설명으로 확인합니다."
         : "따뜻한 보리차, 포장, 설탕 없음을 영어 메뉴와 짧은 안내만 보고 찾아봅니다.",
@@ -1691,33 +1706,43 @@ function renderAlienStation(root, mode) {
       className: isKind ? "friendly-kiosk" : "alien-kiosk",
       body: `
         <div class="category-tabs">
-          ${groups.map((group, index) => `<span class="category-tab ${index === 0 ? "is-active" : ""}">${group.title}</span>`).join("")}
+          ${groups.map((group, index) => `<span class="category-tab ${index === activeGroupIndex ? "is-active" : ""} ${picks[group.key] ? "is-complete" : ""}">${group.title}</span>`).join("")}
         </div>
         <div class="alien-order">
-          ${groups
-            .map(
-              (group) => `
-                <section class="dense-section">
-                  <h4>${group.title}</h4>
-                  <div class="product-grid compact-products">
-                    ${group.items
-                      .map((item) =>
-                        productCard(
-                          item,
-                          `data-option-key="${group.key}" data-option-id="${item.id}"`,
-                          picks[group.key]?.id === item.id ? "is-picked" : ""
-                        )
-                      )
-                      .join("")}
-                  </div>
-                </section>
-              `
-            )
-            .join("")}
+          <section class="dense-section alien-active-section">
+            <h4>${activeGroup.title}</h4>
+            <div class="product-grid compact-products">
+              ${activeGroup.items
+                .map((item) =>
+                  productCard(
+                    item,
+                    `data-option-key="${activeGroup.key}" data-option-id="${item.id}"`,
+                    picks[activeGroup.key]?.id === item.id ? "is-picked" : ""
+                  )
+                )
+                .join("")}
+            </div>
+          </section>
         </div>
+        ${alienSuccessMessage ? flowModal(alienSuccessMessage) : ""}
       `
     });
     restoreKioskScroll(root, scrollState);
+
+    const modalClose = root.querySelector("[data-flow-modal-close]");
+    if (modalClose) {
+      modalClose.addEventListener("click", () => {
+        const action = alienSuccessAction;
+        alienSuccessMessage = "";
+        alienSuccessAction = "";
+        if (action === "complete") {
+          completeStation(isKind ? "쉬운 말과 설명이 있으면 처음 보는 메뉴도 고를 수 있습니다." : "낯선 말과 부족한 설명은 디지털 기기가 익숙하지 않은 사람에게 주문 장벽이 됩니다.");
+          showCompletion(root, "실제 주문 화면에서도 쉬운 말과 그림 설명이 필요합니다.");
+          return;
+        }
+        draw();
+      });
+    }
 
     root.querySelectorAll("[data-option-key]").forEach((button) => {
       button.addEventListener("click", () => {
@@ -1730,11 +1755,14 @@ function renderAlienStation(root, mode) {
         }
         picks[group.key] = selected;
         if (Object.keys(picks).length === groups.length) {
-          completeStation(isKind ? "쉬운 말과 설명이 있으면 처음 보는 메뉴도 고를 수 있습니다." : "낯선 말과 부족한 설명은 디지털 기기가 익숙하지 않은 사람에게 주문 장벽이 됩니다.");
-          showCompletion(root, "실제 주문 화면에서도 쉬운 말과 그림 설명이 필요합니다.");
+          alienSuccessMessage = "잘 골랐습니다. 목표 메뉴를 모두 찾았습니다.";
+          alienSuccessAction = "complete";
+          draw();
           return;
         }
-        draw({ preserveScroll: true });
+        alienSuccessMessage = "잘 골랐습니다. 다음 항목을 찾아보세요.";
+        alienSuccessAction = "next";
+        draw();
       });
     });
 

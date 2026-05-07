@@ -1153,6 +1153,12 @@ button {
   color: var(--ink);
 }
 
+.category-tab.is-complete {
+  border-color: var(--grass);
+  background: #e9ffe6;
+  color: var(--ink);
+}
+
 .product-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1508,6 +1514,10 @@ button {
   font-size: 1rem;
 }
 
+.alien-active-section {
+  min-height: 0;
+}
+
 .payment-flow {
   display: grid;
   gap: 10px;
@@ -1626,6 +1636,17 @@ button {
   background: #e9ffe6;
 }
 
+.reward-phone-panel.has-student-entry {
+  grid-template-columns: 1fr;
+  justify-items: center;
+  align-content: start;
+  background: #e9ffe6;
+}
+
+.reward-phone-panel.has-student-entry .phone-mock {
+  width: min(100%, 360px);
+}
+
 .phone-focus-kiosk .kiosk-order-main {
   grid-template-rows: minmax(0, 1fr);
 }
@@ -1661,8 +1682,7 @@ button {
   background: #e9ffe6;
 }
 
-.phone-focus-flow .affiliate-phone-panel > div:first-child,
-.phone-focus-flow .reward-phone-panel > div:first-child {
+.phone-focus-flow .phone-panel-copy {
   max-width: 360px;
   text-align: center;
 }
@@ -1700,8 +1720,7 @@ body.kiosk-focus-mode .phone-focus-flow .reward-phone-panel {
   padding: 10px;
 }
 
-body.kiosk-focus-mode .phone-focus-flow .affiliate-phone-panel > div:first-child,
-body.kiosk-focus-mode .phone-focus-flow .reward-phone-panel > div:first-child {
+body.kiosk-focus-mode .phone-focus-flow .phone-panel-copy {
   max-width: none;
 }
 
@@ -1726,6 +1745,16 @@ body.kiosk-focus-mode .phone-focus-flow .phone-screen {
 
 body.kiosk-focus-mode .phone-lock-screen {
   min-height: 170px;
+}
+
+body.kiosk-focus-mode .phone-focus-flow .reward-phone-panel.has-student-entry {
+  grid-template-columns: 1fr;
+  justify-items: center;
+  align-content: start;
+}
+
+body.kiosk-focus-mode .phone-focus-flow .reward-phone-panel.has-student-entry .phone-mock {
+  width: min(100%, 340px);
 }
 
 .phone-mock {
@@ -1788,6 +1817,35 @@ body.kiosk-focus-mode .phone-lock-screen {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.reward-phone-app-header {
+  align-items: flex-start;
+  padding: 2px 0 4px;
+}
+
+.reward-phone-app-title {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.reward-phone-app-title small,
+.reward-phone-app-title em {
+  color: var(--muted);
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.reward-phone-app-title small {
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.reward-phone-app-title em {
+  font-size: 0.66rem;
+  font-style: normal;
 }
 
 .phone-app-logo {
@@ -2042,11 +2100,14 @@ body.kiosk-focus-mode .phone-lock-screen {
 .student-id-entry {
   display: grid;
   grid-column: 1 / -1;
+  width: min(100%, 390px);
   gap: 8px;
+  justify-self: center;
   padding: 12px;
   border: 3px solid var(--line);
   border-radius: 8px;
   background: #ffffff;
+  box-shadow: 4px 4px 0 rgba(37, 41, 58, 0.18);
 }
 
 .student-id-entry label {
@@ -2098,11 +2159,51 @@ body.kiosk-focus-mode .phone-lock-screen {
 .barcode-drag-ghost {
   position: fixed;
   z-index: 1000;
+  box-sizing: border-box;
+  aspect-ratio: 0.62;
   width: 230px;
   max-width: 56vw;
+  gap: 5px;
+  overflow: hidden;
+  padding: 7px;
+  border-width: 3px;
+  border-radius: 18px;
   pointer-events: none;
   transform: translate(-50%, -50%);
   box-shadow: 0 10px 24px rgba(37, 41, 58, 0.3);
+}
+
+.barcode-drag-ghost .phone-speaker {
+  width: 38px;
+  height: 4px;
+}
+
+.barcode-drag-ghost .phone-screen {
+  height: 100%;
+  min-height: 0;
+  align-content: center;
+  padding: 8px;
+}
+
+.barcode-drag-ghost .phone-title,
+.barcode-drag-ghost .membership-card b,
+.barcode-drag-ghost .membership-card small,
+.barcode-drag-ghost .membership-card strong {
+  display: none;
+}
+
+.barcode-drag-ghost .membership-card {
+  display: grid;
+  min-height: 0;
+  align-content: center;
+  padding: 8px;
+  border-width: 2px;
+}
+
+.barcode-drag-ghost .barcode-visual {
+  width: min(100%, 118px);
+  height: 42px;
+  justify-self: center;
 }
 
 body.is-dragging-barcode {
@@ -2153,21 +2254,9 @@ body.is-dragging-barcode {
 }
 
 .barcode-target.is-targeted {
-  border-color: var(--coral);
-  background: #fff0f4;
-  box-shadow: 0 0 0 4px rgba(255, 85, 126, 0.18);
-}
-
-.barcode-target.is-drop-correct {
-  border-color: var(--grass);
-  background: #e9ffe6;
-  box-shadow: 0 0 0 5px rgba(94, 190, 112, 0.24);
-}
-
-.barcode-target.is-drop-wrong {
-  border-color: var(--coral);
-  background: #fff0f4;
-  box-shadow: 0 0 0 5px rgba(255, 85, 126, 0.2);
+  border-color: var(--sun);
+  background: #fff7d8;
+  box-shadow: 0 0 0 5px rgba(255, 191, 47, 0.26);
 }
 
 .scan-payment-flow {
@@ -2417,55 +2506,15 @@ body.kiosk-focus-mode .hardware-focus-flow .hardware-device-group {
 }
 
 .hardware-button.is-card-targeted {
-  border-color: var(--coral);
-  background: #fff0f4;
+  border-color: var(--sun);
+  background: #fff7d8;
   box-shadow:
-    0 0 0 5px rgba(255, 85, 126, 0.2),
+    0 0 0 5px rgba(255, 191, 47, 0.26),
     4px 4px 0 var(--line);
 }
 
-.hardware-button.is-drop-correct {
-  border-color: var(--grass);
-  background: #dfffd9;
-  box-shadow:
-    0 0 0 5px rgba(94, 190, 112, 0.28),
-    4px 4px 0 var(--line);
-}
-
-.hardware-button.is-drop-wrong {
-  border-color: var(--coral);
-  background: #fff0f4;
-}
-
-.barcode-target.is-targeted::after,
-.hardware-button.is-card-targeted::after {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  z-index: 2;
-  padding: 4px 7px;
-  border: 2px solid var(--line);
-  border-radius: 999px;
-  background: #ffffff;
-  color: var(--ink);
-  font-size: 0.56rem;
-  font-weight: 900;
-  line-height: 1;
-  box-shadow: 2px 2px 0 rgba(37, 41, 58, 0.18);
-  content: "다른 위치";
-}
-
-.barcode-target.is-drop-correct::after,
-.hardware-button.is-drop-correct::after {
-  background: var(--grass);
-  color: #ffffff;
-  content: "여기에 놓기";
-}
-
-.hardware-button.is-drop-correct .hardware-image,
-.hardware-button.is-drop-wrong .hardware-image,
-.barcode-target.is-drop-correct .hardware-image,
-.barcode-target.is-drop-wrong .hardware-image {
+.hardware-button.is-card-targeted .hardware-image,
+.barcode-target.is-targeted .hardware-image {
   transform: scale(1.06);
 }
 
