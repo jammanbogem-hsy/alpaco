@@ -242,6 +242,18 @@ function celebrationParticles() {
 
 function showCompletion(root, message) {
   const station = currentStation();
+  const stationRecords = state.barriers
+    .filter((entry) => entry.stationId === station.id && !entry.success)
+    .slice(0, 3);
+  const completionRecord = stationRecords.length
+    ? `
+      <div class="completion-record">
+        <b>발견 기록</b>
+        ${stationRecords.map((entry) => `<span>${entry.message}</span>`).join("")}
+      </div>
+    `
+    : "";
+
   root.innerHTML = `
     <div class="kiosk-screen completion-screen">
       <div class="celebration-layer" aria-hidden="true">
@@ -252,6 +264,7 @@ function showCompletion(root, message) {
         <h3>${station.title} 완료</h3>
         <p>${message}</p>
         <p class="completion-lesson">마무리: ${station.closing}</p>
+        ${completionRecord}
         <button class="next-button" type="button">키오스크 선택으로</button>
       </div>
     </div>
@@ -414,8 +427,6 @@ function cartPanel(items, actionLabel = "결제하기") {
 
 function kioskShell({ brand, title, subtitle, mode, status, timer, steps, activeStep, body, cartItems, guide, className = "" }) {
   const modeLabel = mode === "kind" ? "개선 모드" : "어려운 모드";
-  const station = currentStation();
-  const hero = kioskHeroFor(station?.id || "timer");
   const stageClass = ["kiosk-stage", mode === "challenge" ? "challenge" : ""].filter(Boolean).join(" ");
   return `
     <div class="${stageClass}">
@@ -435,14 +446,6 @@ function kioskShell({ brand, title, subtitle, mode, status, timer, steps, active
                 ${timer ? `<strong id="timerReadout">${timer}</strong>` : ""}
               </div>
             </header>
-            <section class="kiosk-promo">
-              <div>
-                <p>${hero.title}</p>
-                <h3>${hero.name}</h3>
-                <span>${hero.copy}</span>
-              </div>
-              <div class="promo-art">${hero.art}</div>
-            </section>
             <section class="kiosk-order-main">
               <div class="order-board">
                 <div class="order-heading">
@@ -691,7 +694,9 @@ function renderTimerStation(root, mode) {
       timer: isKind ? "" : `${timeLeft.toFixed(1)}초`,
       steps: steps.map((item) => item.label),
       activeStep: step,
-      guide: current.guide,
+      guide: isKind
+        ? "시간 제한 없이 치즈버거, 감자튀김, 콜라(M), 얼음 적게, 카드 결제를 순서대로 고릅니다."
+        : "3초 안에 치즈버거, 감자튀김, 콜라(M), 얼음 적게, 카드 결제를 순서대로 고릅니다.",
       cartItems: selectedCartItems(order),
       className: isKind ? "friendly-kiosk" : "pressure-kiosk",
       body: `
@@ -1063,7 +1068,7 @@ function renderTinyStation(root, mode) {
             : ""
         }
         <div class="hardware-actions">
-          <button class="hardware-button barcode-target ${hardware.card ? "is-done" : ""}" type="button" data-hardware="card" data-barcode-target="card" data-card-target="slot">
+          <button class="hardware-button barcode-target ${hardware.card ? "is-done" : ""}" type="button" data-hardware="card" data-barcode-target="card" data-card-target="slot" aria-label="카드 넣는 곳">
             <span class="hardware-device-group">
               <span class="hardware-image hardware-card-slot" aria-hidden="true">
                 <img src="${productImages["hardware-card-slot"]}" alt="" loading="lazy">
@@ -1071,20 +1076,20 @@ function renderTinyStation(root, mode) {
               <b>카드 넣는 곳</b>
             </span>
           </button>
-          <button class="hardware-button barcode-target ${hardware.receipt ? "is-done" : ""}" type="button" data-hardware="receipt" data-barcode-target="receipt">
+          <button class="hardware-button barcode-target ${hardware.receipt ? "is-done" : ""}" type="button" data-hardware="receipt" data-barcode-target="receipt" aria-label="영수증과 번호표 챙기기">
             <span class="hardware-device-group">
               <span class="hardware-image hardware-receipt" aria-hidden="true">
                 <img src="${productImages["hardware-receipt"]}" alt="" loading="lazy">
               </span>
-              <b>영수증/번호표 챙기기</b>
+              <b>영수증/번호표<br>챙기기</b>
             </span>
           </button>
-          <button class="hardware-button barcode-target" type="button" data-barcode-target="scanner">
+          <button class="hardware-button barcode-target" type="button" data-barcode-target="scanner" aria-label="바코드 인식하는 곳">
             <span class="hardware-device-group">
               <span class="hardware-image hardware-barcode" aria-hidden="true">
                 <img src="${productImages["hardware-barcode"]}" alt="" loading="lazy">
               </span>
-              <b>바코드 인식하는 곳</b>
+              <b>바코드 인식하는<br>곳</b>
             </span>
           </button>
         </div>
@@ -1159,9 +1164,13 @@ function renderTinyStation(root, mode) {
 
     let activeTarget = null;
     const setActiveTarget = (target) => {
-      if (activeTarget && activeTarget !== target) activeTarget.classList.remove("is-targeted");
+      if (activeTarget && activeTarget !== target) {
+        activeTarget.classList.remove("is-targeted", "is-drop-correct", "is-drop-wrong");
+      }
       activeTarget = target;
-      if (activeTarget) activeTarget.classList.add("is-targeted");
+      if (activeTarget) {
+        activeTarget.classList.add("is-targeted", activeTarget.dataset.barcodeTarget === "scanner" ? "is-drop-correct" : "is-drop-wrong");
+      }
     };
 
     barcode.addEventListener("pointerdown", (event) => {
@@ -1170,9 +1179,13 @@ function renderTinyStation(root, mode) {
 
       let lastX = event.clientX;
       let lastY = event.clientY;
+      const sourceRect = barcode.getBoundingClientRect();
+      const ghostWidth = Math.max(130, Math.min(sourceRect.width * 0.54, 190, window.innerWidth * 0.34));
       const dragGhost = barcode.cloneNode(true);
       dragGhost.removeAttribute("data-draggable-barcode");
       dragGhost.classList.add("barcode-drag-ghost");
+      dragGhost.style.width = `${ghostWidth}px`;
+      dragGhost.style.maxWidth = "none";
       document.body.appendChild(dragGhost);
       barcode.classList.add("is-drag-source");
       document.body.classList.add("is-dragging-barcode");
@@ -1225,9 +1238,13 @@ function renderTinyStation(root, mode) {
 
     let activeTarget = null;
     const setActiveTarget = (target) => {
-      if (activeTarget && activeTarget !== target) activeTarget.classList.remove("is-card-targeted");
+      if (activeTarget && activeTarget !== target) {
+        activeTarget.classList.remove("is-card-targeted", "is-drop-correct", "is-drop-wrong");
+      }
       activeTarget = target;
-      if (activeTarget) activeTarget.classList.add("is-card-targeted");
+      if (activeTarget) {
+        activeTarget.classList.add("is-card-targeted", activeTarget.dataset.cardTarget === "slot" ? "is-drop-correct" : "is-drop-wrong");
+      }
     };
 
     card.addEventListener("pointerdown", (event) => {
@@ -1237,27 +1254,31 @@ function renderTinyStation(root, mode) {
       const anchorX = Number.parseFloat(card.dataset.cardAnchorX || "0.35");
       const anchorY = Number.parseFloat(card.dataset.cardAnchorY || "0.26");
       const sourceRect = card.getBoundingClientRect();
+      const ghostScale = 0.58;
+      const ghostWidth = Math.max(140, Math.min(sourceRect.width * ghostScale, 260, window.innerWidth * 0.42));
+      const ghostRatio = ghostWidth / Math.max(sourceRect.width, 1);
+      const ghostHeight = sourceRect.height * ghostRatio;
       let lastX = event.clientX;
       let lastY = event.clientY;
       const dragGhost = card.cloneNode(true);
       dragGhost.removeAttribute("data-draggable-card");
       dragGhost.classList.add("card-drag-ghost");
-      dragGhost.style.width = `${sourceRect.width}px`;
-      dragGhost.style.height = `${sourceRect.height}px`;
+      dragGhost.style.width = `${ghostWidth}px`;
+      dragGhost.style.height = `${ghostHeight}px`;
       document.body.appendChild(dragGhost);
       card.classList.add("is-drag-source");
       document.body.classList.add("is-dragging-card");
 
       const moveGhost = (x, y) => {
-        dragGhost.style.left = `${x - sourceRect.width * anchorX}px`;
-        dragGhost.style.top = `${y - sourceRect.height * anchorY}px`;
+        dragGhost.style.left = `${x - ghostWidth * anchorX}px`;
+        dragGhost.style.top = `${y - ghostHeight * anchorY}px`;
       };
 
       const onMove = (moveEvent) => {
         lastX = moveEvent.clientX;
         lastY = moveEvent.clientY;
         moveGhost(lastX, lastY);
-        const target = document.elementFromPoint(lastX, lastY)?.closest("[data-card-target]");
+        const target = document.elementFromPoint(lastX, lastY)?.closest("[data-barcode-target]");
         setActiveTarget(target);
       };
 
@@ -1266,7 +1287,7 @@ function renderTinyStation(root, mode) {
         window.removeEventListener("pointerup", onEnd);
         window.removeEventListener("pointercancel", onEnd);
 
-        const target = document.elementFromPoint(lastX, lastY)?.closest("[data-card-target]");
+        const target = document.elementFromPoint(lastX, lastY)?.closest("[data-barcode-target]");
         dragGhost.remove();
         card.classList.remove("is-drag-source");
         document.body.classList.remove("is-dragging-card");
@@ -1352,7 +1373,9 @@ function renderTinyStation(root, mode) {
       status: `${doneCount} / 5 완료`,
       steps: ["할인", "적립", "결제", "카드", "영수증"],
       activeStep: activePaymentStep,
-      guide: isKind ? "필요한 선택지만 단계별로 보여 주고, 기기에서 해야 할 일도 함께 안내합니다." : "",
+      guide: isKind
+        ? "필요한 선택지만 단계별로 보여 주고, 기기에서 해야 할 일도 함께 안내합니다."
+        : "ALPACO VIP 인증, SNU 클래스 적립, 카드 결제, 영수증 수령을 차례로 진행합니다.",
       cartItems,
       className: kioskClassName,
       body: paymentBody
@@ -1661,7 +1684,9 @@ function renderAlienStation(root, mode) {
       status: `${cartItems.length} / 3 선택`,
       steps: ["음료", "수령", "옵션"],
       activeStep: Math.min(cartItems.length, 2),
-      guide: isKind ? "메뉴 이름과 설명을 함께 보여 줍니다." : "",
+      guide: isKind
+        ? "따뜻한 보리차, 포장, 설탕 없음을 쉬운 말과 설명으로 확인합니다."
+        : "따뜻한 보리차, 포장, 설탕 없음을 영어 메뉴와 짧은 안내만 보고 찾아봅니다.",
       cartItems,
       className: isKind ? "friendly-kiosk" : "alien-kiosk",
       body: `
