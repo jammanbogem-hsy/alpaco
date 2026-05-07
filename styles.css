@@ -629,7 +629,69 @@ button {
   font-size: 1.05rem;
 }
 
+.completion-screen {
+  position: relative;
+  overflow: hidden;
+}
+
+.celebration-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.celebration-particle {
+  position: absolute;
+  top: -28px;
+  left: var(--x);
+  width: var(--size);
+  height: calc(var(--size) * 1.55);
+  border: 2px solid var(--line);
+  border-radius: 3px;
+  background: var(--sun);
+  box-shadow: 2px 2px 0 rgba(37, 41, 58, 0.24);
+  animation: particle-fall var(--duration) ease-out var(--delay) both;
+}
+
+.particle-1 {
+  background: var(--coral);
+}
+
+.particle-2 {
+  background: var(--sky);
+}
+
+.particle-3 {
+  background: var(--grass);
+}
+
+.particle-4 {
+  width: calc(var(--size) * 1.35);
+  height: calc(var(--size) * 1.35);
+  clip-path: polygon(50% 0%, 61% 34%, 98% 35%, 68% 55%, 79% 91%, 50% 70%, 21% 91%, 32% 55%, 2% 35%, 39% 34%);
+}
+
+@keyframes particle-fall {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -20px, 0) rotate(0deg);
+  }
+
+  12% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--drift), 620px, 0) rotate(var(--turn));
+  }
+}
+
 .completion-panel {
+  position: relative;
+  z-index: 2;
   display: grid;
   gap: 14px;
   align-content: center;
@@ -639,6 +701,24 @@ button {
   border-radius: 8px;
   background: #efffeb;
   text-align: center;
+  animation: completion-pop 260ms ease-out both;
+}
+
+.completion-kicker {
+  color: var(--coral);
+  font-size: 0.95rem;
+}
+
+@keyframes completion-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .completion-panel h3 {
@@ -2087,6 +2167,7 @@ body.is-dragging-barcode {
 
 .payment-hardware {
   display: grid;
+  align-content: start;
   gap: 10px;
   padding: 12px;
   border: 3px solid var(--line);
@@ -2108,6 +2189,14 @@ body.is-dragging-barcode {
 
 .payment-hardware.is-barcode-stage {
   background: #fffdf1;
+}
+
+.payment-hardware.is-card-stage {
+  gap: 8px;
+}
+
+.payment-hardware.is-card-stage .card-drag-zone {
+  margin-bottom: 0;
 }
 
 .hardware-actions {
@@ -2142,6 +2231,10 @@ body.is-dragging-barcode {
   gap: 16px;
   min-height: auto;
   padding: 18px;
+}
+
+.hardware-focus-flow .payment-hardware.is-card-stage {
+  gap: 8px;
 }
 
 .hardware-focus-flow .payment-hardware h4 {
@@ -2296,7 +2389,7 @@ body.is-dragging-barcode {
   justify-items: center;
   min-width: 0;
   width: 100%;
-  margin-top: 8px;
+  margin: 0 0 8px;
   padding: 0;
   border: 0;
   border-radius: 0;
@@ -2975,6 +3068,18 @@ body.is-dragging-card {
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .celebration-particle {
+    animation: none;
+    opacity: 0.34;
+    transform: translateY(64px);
+  }
+
+  .completion-panel {
+    animation: none;
+  }
+}
+
 body.kiosk-focus-mode {
   background:
     linear-gradient(180deg, #eef8ff 0%, #f7fff1 100%);
@@ -3004,10 +3109,10 @@ body.kiosk-focus-mode .station-back-button {
 
 body.kiosk-focus-mode .station-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 350px);
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
   gap: clamp(10px, 1.5vw, 18px);
   align-items: stretch;
-  width: min(100%, 1180px);
+  width: min(100%, 1380px);
   margin: 0 auto;
 }
 
@@ -3030,7 +3135,7 @@ body.kiosk-focus-mode .kiosk-stage {
 }
 
 body.kiosk-focus-mode .kiosk-hardware {
-  width: min(100%, 500px);
+  width: min(100%, 720px);
 }
 
 body.kiosk-focus-mode .reflection-panel {

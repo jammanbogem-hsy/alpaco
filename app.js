@@ -223,11 +223,32 @@ function completeStation(message) {
   showToast("체험 완료. 더 좋은 설계를 찾았습니다.");
 }
 
+function celebrationParticles() {
+  return Array.from({ length: 30 }, (_, index) => {
+    const x = 8 + ((index * 19) % 84);
+    const delay = (index % 10) * 70;
+    const duration = 1200 + (index % 5) * 150;
+    const size = 8 + (index % 4) * 3;
+    const turn = (index % 2 === 0 ? 1 : -1) * (180 + index * 11);
+    const drift = (index % 2 === 0 ? 1 : -1) * (24 + (index % 6) * 12);
+    return `
+      <span
+        class="celebration-particle particle-${index % 5}"
+        style="--x: ${x}%; --delay: ${delay}ms; --duration: ${duration}ms; --size: ${size}px; --turn: ${turn}deg; --drift: ${drift}px;"
+      ></span>
+    `;
+  }).join("");
+}
+
 function showCompletion(root, message) {
   const station = currentStation();
   root.innerHTML = `
-    <div class="kiosk-screen">
+    <div class="kiosk-screen completion-screen">
+      <div class="celebration-layer" aria-hidden="true">
+        ${celebrationParticles()}
+      </div>
       <div class="completion-panel">
+        <p class="completion-kicker">미션 해결</p>
         <h3>${station.title} 완료</h3>
         <p>${message}</p>
         <p class="completion-lesson">마무리: ${station.closing}</p>
@@ -1030,6 +1051,17 @@ function renderTinyStation(root, mode) {
       <section class="payment-hardware ${optionReady ? "is-ready" : ""} ${barcodeActive ? "is-barcode-stage" : ""} ${cardDragActive ? "is-card-stage" : ""}">
         <h4>키오스크 앞면</h4>
         ${hint ? `<p class="payment-hardware-hint">${hint}</p>` : ""}
+        ${
+          cardDragActive
+            ? `
+              <div class="card-drag-zone">
+                <div class="payment-card-hand" data-draggable-card="true" data-card-anchor-x="0.5" data-card-anchor-y="0.5" aria-label="결제 카드를 카드 넣는 곳으로 끌어다 놓기">
+                  <img src="${productImages["payment-card-hand"]}" alt="" draggable="false">
+                </div>
+              </div>
+            `
+            : ""
+        }
         <div class="hardware-actions">
           <button class="hardware-button barcode-target ${hardware.card ? "is-done" : ""}" type="button" data-hardware="card" data-barcode-target="card" data-card-target="slot">
             <span class="hardware-device-group">
@@ -1056,17 +1088,6 @@ function renderTinyStation(root, mode) {
             </span>
           </button>
         </div>
-        ${
-          cardDragActive
-            ? `
-              <div class="card-drag-zone">
-                <div class="payment-card-hand" data-draggable-card="true" data-card-anchor-x="0.5" data-card-anchor-y="0.5" aria-label="결제 카드를 카드 넣는 곳으로 끌어다 놓기">
-                  <img src="${productImages["payment-card-hand"]}" alt="" draggable="false">
-                </div>
-              </div>
-            `
-            : ""
-        }
       </section>
     `;
   }
