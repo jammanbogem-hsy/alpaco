@@ -37,6 +37,12 @@ const stations = [
   }
 ];
 
+const stationPasswords = {
+  timer: "감자튀김",
+  alien: "보리차",
+  tiny: "카드결제"
+};
+
 const state = {
   currentId: null,
   mode: "challenge",
@@ -578,6 +584,7 @@ function kioskHeroFor(stationId) {
 function renderKioskStart(root, station, mode) {
   const hero = kioskHeroFor(station.id);
   const modeLabel = mode === "kind" ? "개선 모드" : "어려운 모드";
+  const inputId = `stationPassword-${station.id}`;
   root.innerHTML = `
     <div class="kiosk-stage">
       <div class="kiosk-hardware start-hardware">
@@ -594,7 +601,12 @@ function renderKioskStart(root, station, mode) {
             <p class="section-kicker">${modeLabel}</p>
             <h3>주문 목표를 확인했나요?</h3>
             <p>${station.mission}</p>
-            <button class="kiosk-start-button" type="button" data-kiosk-start="true">시작</button>
+            <form class="start-password-form" data-start-password-form="true">
+              <label for="${inputId}">비밀번호</label>
+              <input id="${inputId}" type="text" autocomplete="off" placeholder="선생님이 알려준 비밀번호 입력" data-start-password-input="true" />
+              <small data-start-password-error="true" aria-live="polite"></small>
+              <button class="kiosk-start-button" type="submit">시작</button>
+            </form>
           </section>
           <footer class="kiosk-homebar">
             <span>처음으로</span>
@@ -607,9 +619,29 @@ function renderKioskStart(root, station, mode) {
     </div>
   `;
 
-  root.querySelector("[data-kiosk-start]").addEventListener("click", () => {
+  root.querySelector("[data-start-password-form]").addEventListener("submit", (event) => {
+    event.preventDefault();
+    const input = root.querySelector("[data-start-password-input]");
+    const error = root.querySelector("[data-start-password-error]");
+    const expected = stationPasswords[station.id] || "";
+    const typed = input.value.replace(/\s/g, "");
+
+    if (typed !== expected.replace(/\s/g, "")) {
+      input.classList.add("is-error");
+      error.textContent = "비밀번호를 다시 확인해 주세요.";
+      showToast("비밀번호를 다시 확인해 주세요.");
+      input.focus();
+      input.select();
+      return;
+    }
+
     state.kioskStarted = true;
     renderStation();
+  });
+
+  root.querySelector("[data-start-password-input]").addEventListener("input", (event) => {
+    event.currentTarget.classList.remove("is-error");
+    root.querySelector("[data-start-password-error]").textContent = "";
   });
 }
 

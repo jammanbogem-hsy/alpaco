@@ -900,6 +900,43 @@ button {
   font-weight: 800;
 }
 
+.start-password-form {
+  display: grid;
+  gap: 8px;
+}
+
+.start-password-form label {
+  color: var(--ink);
+  font-weight: 900;
+}
+
+.start-password-form input {
+  min-height: 56px;
+  padding: 10px 12px;
+  border: 3px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 900;
+}
+
+.start-password-form input:focus {
+  outline: 4px solid rgba(255, 191, 47, 0.42);
+  outline-offset: 2px;
+}
+
+.start-password-form input.is-error {
+  border-color: var(--coral);
+  background: #fff0f4;
+}
+
+.start-password-form small {
+  min-height: 1.4em;
+  color: var(--coral);
+  font-weight: 900;
+}
+
 .kiosk-start-button {
   min-height: 74px;
   margin-top: 8px;
