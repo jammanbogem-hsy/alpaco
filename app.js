@@ -517,9 +517,11 @@ function randomStudentNumber(length = 8) {
 
 function captureKioskScroll(root) {
   const frame = root.querySelector(".kiosk-frame");
+  const device = root.querySelector(".kiosk-device-screen");
   const board = root.querySelector(".order-board");
   return {
     frameTop: frame ? frame.scrollTop : 0,
+    deviceTop: device ? device.scrollTop : 0,
     boardTop: board ? board.scrollTop : 0
   };
 }
@@ -529,8 +531,10 @@ function restoreKioskScroll(root, scrollState) {
 
   const restore = () => {
     const frame = root.querySelector(".kiosk-frame");
+    const device = root.querySelector(".kiosk-device-screen");
     const board = root.querySelector(".order-board");
     if (frame) frame.scrollTop = scrollState.frameTop;
+    if (device) device.scrollTop = scrollState.deviceTop || 0;
     if (board) board.scrollTop = scrollState.boardTop;
   };
 
