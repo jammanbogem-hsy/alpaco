@@ -1648,78 +1648,229 @@ function renderFriendlyPicker(root, config) {
 
 function renderAlienStation(root, mode) {
   const isKind = mode === "kind";
-  const picks = {};
+  let picks = {};
   let alienSuccessMessage = "";
   let alienSuccessAction = "";
-  const groups = isKind
-    ? [
-        {
-          key: "drink",
-          title: "음료",
-          correct: "barley-hot",
-          items: [
-            { id: "barley-hot", label: "따뜻한 보리차", desc: "카페인이 적은 차", price: 2500, visual: "cup" },
-            { id: "barley-ice", label: "차가운 보리차", desc: "얼음 포함", price: 2500, visual: "cup" },
-            { id: "milk", label: "딸기 우유", desc: "달콤한 우유", price: 3200, visual: "cup" },
-            { id: "citron-hot", label: "따뜻한 유자차", desc: "달콤한 과일차", price: 3000, visual: "cup" },
-            { id: "ice-tea", label: "아이스티", desc: "차가운 홍차", price: 2800, visual: "cup" }
-          ]
-        },
-        {
-          key: "serve",
-          title: "받는 방법",
-          correct: "takeout",
-          items: [
-            { id: "here", label: "매장 이용", desc: "컵에 제공", price: 0, mark: "매" },
-            { id: "takeout", label: "포장", desc: "뚜껑 있는 컵", price: 0, mark: "포" },
-            { id: "later", label: "나중에 받기", desc: "대기 후 수령", price: 0, mark: "대" }
-          ]
-        },
-        {
-          key: "sugar",
-          title: "단맛",
-          correct: "zero",
-          items: [
-            { id: "normal", label: "보통", desc: "기본 단맛", price: 0, mark: "보" },
-            { id: "zero", label: "설탕 없음", desc: "단맛 추가 없음", price: 0, mark: "무" },
-            { id: "more", label: "많이", desc: "달게", price: 0, mark: "다" }
-          ]
-        }
+  let alienReplayPrompt = false;
+  const completedLanguages = new Set();
+  const hardItem = (id, label, price = 0) => ({ id, label, price, noArt: true });
+  const easyGroups = [
+    {
+      key: "drink",
+      title: "음료",
+      correct: "barley-hot",
+      items: [
+        { id: "barley-hot", label: "따뜻한 보리차", desc: "카페인이 적은 차", price: 2500, visual: "cup" },
+        { id: "barley-ice", label: "차가운 보리차", desc: "얼음 포함", price: 2500, visual: "cup" },
+        { id: "milk", label: "딸기 우유", desc: "달콤한 우유", price: 3200, visual: "cup" },
+        { id: "citron-hot", label: "따뜻한 유자차", desc: "달콤한 과일차", price: 3000, visual: "cup" },
+        { id: "ice-tea", label: "아이스티", desc: "차가운 홍차", price: 2800, visual: "cup" }
       ]
-    : [
+    },
+    {
+      key: "serve",
+      title: "받는 방법",
+      correct: "takeout",
+      items: [
+        { id: "here", label: "매장 이용", desc: "컵에 제공", price: 0, mark: "매" },
+        { id: "takeout", label: "포장", desc: "뚜껑 있는 컵", price: 0, mark: "포" },
+        { id: "later", label: "나중에 받기", desc: "대기 후 수령", price: 0, mark: "대" }
+      ]
+    },
+    {
+      key: "sugar",
+      title: "단맛",
+      correct: "zero",
+      items: [
+        { id: "normal", label: "보통", desc: "기본 단맛", price: 0, mark: "보" },
+        { id: "zero", label: "설탕 없음", desc: "단맛 추가 없음", price: 0, mark: "무" },
+        { id: "more", label: "많이", desc: "달게", price: 0, mark: "다" }
+      ]
+    }
+  ];
+  const alienLanguageSets = [
+    {
+      id: "english",
+      name: "영어",
+      groups: [
         {
           key: "drink",
           title: "Beverage",
           correct: "barley-hot-hard",
           items: [
-            { id: "barley-ice-hard", label: "Iced Barley Tea", price: 2500, noArt: true },
-            { id: "barley-hot-hard", label: "Hot Barley Tea", price: 2500, noArt: true },
-            { id: "milk-hard", label: "Strawberry Milk", price: 3200, noArt: true },
-            { id: "citron-hot-hard", label: "Hot Citron Tea", price: 3000, noArt: true },
-            { id: "ice-tea-hard", label: "Iced Tea", price: 2800, noArt: true }
+            hardItem("barley-ice-hard", "Iced Barley Tea", 2500),
+            hardItem("barley-hot-hard", "Hot Barley Tea", 2500),
+            hardItem("milk-hard", "Strawberry Milk", 3200),
+            hardItem("citron-hot-hard", "Hot Citron Tea", 3000),
+            hardItem("ice-tea-hard", "Iced Tea", 2800)
           ]
         },
         {
           key: "serve",
           title: "Pickup",
           correct: "takeout-hard",
-          items: [
-            { id: "here-hard", label: "Eat In", price: 0, noArt: true },
-            { id: "later-hard", label: "Pick Up Later", price: 0, noArt: true },
-            { id: "takeout-hard", label: "Take Out", price: 0, noArt: true }
-          ]
+          items: [hardItem("here-hard", "Eat In"), hardItem("later-hard", "Pick Up Later"), hardItem("takeout-hard", "To go")]
         },
         {
           key: "sugar",
           title: "Sweetness",
           correct: "no-sugar-hard",
-          items: [
-            { id: "no-sugar-hard", label: "No Sugar", price: 0, noArt: true },
-            { id: "regular-hard", label: "Regular Sweet", price: 0, noArt: true },
-            { id: "extra-sweet-hard", label: "Extra Sweet", price: 0, noArt: true }
-          ]
+          items: [hardItem("no-sugar-hard", "No Sugar"), hardItem("regular-hard", "Regular Sweet"), hardItem("extra-sweet-hard", "Extra Sweet")]
         }
-      ];
+      ]
+    },
+    {
+      id: "spanish",
+      name: "스페인어",
+      groups: [
+        {
+          key: "drink",
+          title: "Bebida",
+          correct: "barley-hot-hard",
+          items: [
+            hardItem("barley-ice-hard", "Te de cebada frio", 2500),
+            hardItem("milk-hard", "Leche de fresa", 3200),
+            hardItem("ice-tea-hard", "Te helado", 2800),
+            hardItem("barley-hot-hard", "Te de cebada caliente", 2500),
+            hardItem("citron-hot-hard", "Te de cidra caliente", 3000)
+          ]
+        },
+        {
+          key: "serve",
+          title: "Retiro",
+          correct: "takeout-hard",
+          items: [hardItem("takeout-hard", "Para llevar"), hardItem("here-hard", "Comer aqui"), hardItem("later-hard", "Recoger mas tarde")]
+        },
+        {
+          key: "sugar",
+          title: "Dulzor",
+          correct: "no-sugar-hard",
+          items: [hardItem("regular-hard", "Dulce regular"), hardItem("no-sugar-hard", "Sin azucar"), hardItem("extra-sweet-hard", "Extra dulce")]
+        }
+      ]
+    },
+    {
+      id: "chinese",
+      name: "중국어",
+      groups: [
+        {
+          key: "drink",
+          title: "饮品",
+          correct: "barley-hot-hard",
+          items: [
+            hardItem("milk-hard", "草莓牛奶", 3200),
+            hardItem("citron-hot-hard", "热柚子茶", 3000),
+            hardItem("barley-hot-hard", "热麦茶", 2500),
+            hardItem("barley-ice-hard", "冰麦茶", 2500),
+            hardItem("ice-tea-hard", "冰茶", 2800)
+          ]
+        },
+        {
+          key: "serve",
+          title: "取餐",
+          correct: "takeout-hard",
+          items: [hardItem("here-hard", "堂食"), hardItem("takeout-hard", "外带"), hardItem("later-hard", "稍后取餐")]
+        },
+        {
+          key: "sugar",
+          title: "甜度",
+          correct: "no-sugar-hard",
+          items: [hardItem("regular-hard", "正常糖"), hardItem("extra-sweet-hard", "多糖"), hardItem("no-sugar-hard", "无糖")]
+        }
+      ]
+    },
+    {
+      id: "japanese",
+      name: "일본어",
+      groups: [
+        {
+          key: "drink",
+          title: "ドリンク",
+          correct: "barley-hot-hard",
+          items: [
+            hardItem("barley-hot-hard", "ホット麦茶", 2500),
+            hardItem("barley-ice-hard", "アイス麦茶", 2500),
+            hardItem("milk-hard", "いちごミルク", 3200),
+            hardItem("citron-hot-hard", "ホットゆず茶", 3000),
+            hardItem("ice-tea-hard", "アイスティー", 2800)
+          ]
+        },
+        {
+          key: "serve",
+          title: "受け取り",
+          correct: "takeout-hard",
+          items: [hardItem("here-hard", "店内"), hardItem("takeout-hard", "持ち帰り"), hardItem("later-hard", "あとで受け取り")]
+        },
+        {
+          key: "sugar",
+          title: "甘さ",
+          correct: "no-sugar-hard",
+          items: [hardItem("regular-hard", "ふつう"), hardItem("extra-sweet-hard", "甘め"), hardItem("no-sugar-hard", "砂糖なし")]
+        }
+      ]
+    },
+    {
+      id: "thai",
+      name: "태국어",
+      groups: [
+        {
+          key: "drink",
+          title: "เครื่องดื่ม",
+          correct: "barley-hot-hard",
+          items: [
+            hardItem("ice-tea-hard", "ชาเย็น", 2800),
+            hardItem("milk-hard", "นมสตรอว์เบอร์รี", 3200),
+            hardItem("citron-hot-hard", "ชายูซุร้อน", 3000),
+            hardItem("barley-ice-hard", "ชาข้าวบาร์เลย์เย็น", 2500),
+            hardItem("barley-hot-hard", "ชาข้าวบาร์เลย์ร้อน", 2500)
+          ]
+        },
+        {
+          key: "serve",
+          title: "รับสินค้า",
+          correct: "takeout-hard",
+          items: [hardItem("takeout-hard", "กลับบ้าน"), hardItem("here-hard", "ทานที่ร้าน"), hardItem("later-hard", "รับภายหลัง")]
+        },
+        {
+          key: "sugar",
+          title: "ความหวาน",
+          correct: "no-sugar-hard",
+          items: [hardItem("regular-hard", "หวานปกติ"), hardItem("no-sugar-hard", "ไม่ใส่น้ำตาล"), hardItem("extra-sweet-hard", "หวานมาก")]
+        }
+      ]
+    }
+  ];
+  const pickLanguage = () => {
+    const available = alienLanguageSets.filter((language) => !completedLanguages.has(language.id));
+    const pool = available.length ? available : alienLanguageSets;
+    return pool[Math.floor(Math.random() * pool.length)];
+  };
+  let currentLanguage = isKind ? null : pickLanguage();
+  let groups = isKind ? easyGroups : currentLanguage.groups;
+
+  function resetAlienRound() {
+    picks = {};
+    alienReplayPrompt = false;
+    alienSuccessMessage = "";
+    alienSuccessAction = "";
+    currentLanguage = pickLanguage();
+    groups = currentLanguage.groups;
+  }
+
+  function alienReplayModal() {
+    return `
+      <div class="flow-modal-backdrop" role="dialog" aria-modal="true" aria-label="다른 외계어 도전">
+        <div class="flow-modal alien-replay-modal">
+          <h4>${currentLanguage.name} 버전을 해결했습니다</h4>
+          <p>다른 외계어로도 해보겠어요?</p>
+          <div class="alien-replay-actions">
+            <button class="phone-primary-button" type="button" data-alien-replay="again">다른 외계어 도전</button>
+            <button class="secondary-action alien-finish-button" type="button" data-alien-replay="finish">마무리하기</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
 
   function draw(options = {}) {
     const scrollState = options.preserveScroll ? captureKioskScroll(root) : null;
@@ -1730,17 +1881,28 @@ function renderAlienStation(root, mode) {
     root.innerHTML = kioskShell({
       brand: "모두티",
       title: isKind ? "쉬운 말로 주문하기" : "낯선 말로 주문하기",
-      subtitle: isKind ? "따뜻한 보리차, 포장, 설탕 없음을 고릅니다." : "영어와 짧은 안내만 보고 목표 옵션을 찾아야 합니다.",
+      subtitle: isKind ? "따뜻한 보리차, 포장, 설탕 없음을 고릅니다." : `${currentLanguage.name} 메뉴와 짧은 안내만 보고 목표 옵션을 찾아야 합니다.`,
       mode,
       status: `${cartItems.length} / 3 선택`,
       steps: ["음료", "수령", "옵션"],
       activeStep: activeGroupIndex,
       guide: isKind
         ? "따뜻한 보리차, 포장, 설탕 없음을 쉬운 말과 설명으로 확인합니다."
-        : "따뜻한 보리차, 포장, 설탕 없음을 영어 메뉴와 짧은 안내만 보고 찾아봅니다.",
+        : `따뜻한 보리차, 포장, 설탕 없음을 ${currentLanguage.name} 메뉴와 짧은 안내만 보고 찾아봅니다.`,
       cartItems,
       className: isKind ? "friendly-kiosk" : "alien-kiosk",
       body: `
+        ${
+          isKind
+            ? ""
+            : `
+              <div class="alien-language-status">
+                <span>랜덤 외계어</span>
+                <b>${currentLanguage.name}</b>
+                <small>${completedLanguages.size} / ${alienLanguageSets.length} 언어 해결</small>
+              </div>
+            `
+        }
         <div class="category-tabs">
           ${groups.map((group, index) => `<span class="category-tab ${index === activeGroupIndex ? "is-active" : ""} ${picks[group.key] ? "is-complete" : ""}">${group.title}</span>`).join("")}
         </div>
@@ -1760,10 +1922,23 @@ function renderAlienStation(root, mode) {
             </div>
           </section>
         </div>
+        ${alienReplayPrompt ? alienReplayModal() : ""}
         ${alienSuccessMessage ? flowModal(alienSuccessMessage) : ""}
       `
     });
     restoreKioskScroll(root, scrollState);
+
+    root.querySelectorAll("[data-alien-replay]").forEach((button) => {
+      button.addEventListener("click", () => {
+        if (button.dataset.alienReplay === "again") {
+          resetAlienRound();
+          draw();
+          return;
+        }
+        completeStation("낯선 말과 부족한 설명은 디지털 기기가 익숙하지 않은 사람에게 주문 장벽이 됩니다.");
+        showCompletion(root, "실제 주문 화면에서도 쉬운 말과 그림 설명이 필요합니다.");
+      });
+    });
 
     const modalClose = root.querySelector("[data-flow-modal-close]");
     if (modalClose) {
@@ -1791,6 +1966,18 @@ function renderAlienStation(root, mode) {
         }
         picks[group.key] = selected;
         if (Object.keys(picks).length === groups.length) {
+          if (!isKind) {
+            completedLanguages.add(currentLanguage.id);
+            if (completedLanguages.size === alienLanguageSets.length) {
+              alienSuccessMessage = "5개 외계어 메뉴를 모두 해결했습니다.";
+              alienSuccessAction = "complete";
+              draw();
+              return;
+            }
+            alienReplayPrompt = true;
+            draw();
+            return;
+          }
           alienSuccessMessage = "잘 골랐습니다. 목표 메뉴를 모두 찾았습니다.";
           alienSuccessAction = "complete";
           draw();
