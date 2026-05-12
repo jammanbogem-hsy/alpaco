@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="웹캠 기반 인공지능 얼굴 분석처럼 보이는 알파코 블랙박스 교육용 편향 체험 시뮬레이터"
+    />
+    <title>알파코 : 블랙박스 | 인공지능 얼굴 분석 체험</title>
+    <link rel="stylesheet" href="/bias.css?v=20260512-fun-type" />
+  </head>
+  <body>
+    <main class="face-app" data-phase="camera">
+      <video id="webcam" autoplay muted playsinline></video>
+      <div id="cameraFallback" class="camera-fallback">
+        <strong>카메라 준비 중</strong>
+        <span>카메라 권한을 기다리고 있습니다.</span>
+        <button id="reconnectCameraButton" class="reconnect-camera-button" type="button">
+          카메라 다시 연결
+        </button>
+      </div>
+
+      <div class="camera-shade" aria-hidden="true"></div>
+      <div class="scan-noise" aria-hidden="true"></div>
+      <div class="scan-line" aria-hidden="true"></div>
+      <div class="face-reticle" aria-hidden="true">
+        <span class="corner corner-a"></span>
+        <span class="corner corner-b"></span>
+        <span class="corner corner-c"></span>
+        <span class="corner corner-d"></span>
+      </div>
+      <div id="trackingBox" class="tracking-box" aria-hidden="true">
+        <span class="tracking-label">얼굴 추적 중</span>
+      </div>
+      <div id="landmarkLayer" class="landmark-layer" aria-hidden="true"></div>
+
+      <header class="top-hud">
+        <div class="brand">
+          <span>알파코 : 블랙박스</span>
+          <strong>인공지능 얼굴 프로파일링 시스템</strong>
+        </div>
+        <div class="system-chips" aria-label="시스템 상태">
+          <span id="cameraStatus">카메라 준비</span>
+          <span>저장 안 함</span>
+          <span>교육용 시뮬레이션</span>
+        </div>
+      </header>
+
+      <section id="cameraPanel" class="phase-panel camera-panel is-active" aria-labelledby="cameraTitle">
+        <p class="eyebrow">인공지능 얼굴 분석 시스템</p>
+        <h1 id="cameraTitle">얼굴을 프레임 안에 맞춰 주세요</h1>
+        <p class="panel-copy">촬영하면 인공지능이 얼굴, 행동 패턴, 위험도를 분석하는 것처럼 보입니다.</p>
+        <div class="camera-metrics" aria-label="입력 상태">
+          <span>얼굴 <b id="faceMetric">탐색 중</b></span>
+          <span>조명 <b id="lightMetric">--%</b></span>
+          <span>움직임 <b id="motionMetric">--%</b></span>
+        </div>
+        <div class="calibration-list" aria-label="촬영 전 보정 상태">
+          <span id="calibrationFace"><b>•</b><em>얼굴 위치 보정 중</em></span>
+          <span id="calibrationLight"><b>•</b><em>조명 상태 확인 중</em></span>
+          <span id="calibrationGaze"><b>•</b><em>정면 응시 확인 중</em></span>
+          <span id="calibrationQuality"><b>•</b><em>입력 품질 확인 중</em></span>
+        </div>
+        <button id="captureButton" class="capture-button" type="button">
+          <span></span>
+          촬영하기
+        </button>
+      </section>
+
+      <section id="scanPanel" class="phase-panel scan-panel" aria-labelledby="scanTitle">
+        <p class="eyebrow">스캔 중...</p>
+        <h2 id="scanTitle">얼굴 분석 중...</h2>
+        <div class="scan-progress" aria-label="분석 진행률">
+          <strong id="scanPercent">0%</strong>
+          <div class="progress-track">
+            <span id="scanProgressBar"></span>
+          </div>
+        </div>
+        <div id="scanLogs" class="scan-logs" aria-live="polite"></div>
+        <div id="scanChecklist" class="scan-checklist" aria-label="분석 체크리스트">
+          <span>얼굴 영역 감지 완료</span>
+          <span>조명 정보 수집 완료</span>
+          <span>움직임 패턴 기록 완료</span>
+          <span>표정 변화 분석 완료</span>
+          <span>프로파일 결과 생성 완료</span>
+        </div>
+        <div class="confidence-pill">
+          신뢰도 <strong id="scanConfidence">--%</strong>
+        </div>
+      </section>
+
+      <section id="resultPanel" class="phase-panel result-panel" aria-labelledby="resultTitle">
+        <div class="result-heading">
+          <p class="eyebrow">인공지능 프로파일 결과</p>
+          <h2 id="resultTitle">얼굴 분석 결과</h2>
+          <strong id="resultConfidence">신뢰도: --%</strong>
+        </div>
+        <div id="resultSummary" class="result-summary">
+          <span id="resultMark" class="result-mark">⚠</span>
+          <strong id="resultStatement">분석 결과를 준비 중입니다.</strong>
+        </div>
+        <div class="insight-card">
+          <span>AI 성향 해석</span>
+          <strong id="resultTypeCode">TYPE: ----</strong>
+          <p id="resultInsightText">이런 결과를 얻은 사람은 아직 분류 중입니다.</p>
+        </div>
+        <div class="factor-box">
+          <h3>판단 요소</h3>
+          <ul id="resultFactors" class="factor-list" aria-live="polite"></ul>
+        </div>
+        <button id="showRevealButton" class="reveal-button" type="button">결과의 비밀 보기</button>
+      </section>
+
+      <section id="revealPanel" class="phase-panel reveal-panel" aria-labelledby="revealTitle">
+        <div class="reveal-card">
+          <p class="eyebrow">공개</p>
+          <h2 id="revealTitle">
+            <span>사실 이 시스템은</span>
+            <span>여러분의 얼굴을 실제로</span>
+            <span>분석하지 않았습니다.</span>
+          </h2>
+          <p>
+            하지만 인공지능이라는 이름, 신뢰도 숫자, 분석 화면 때문에 결과를 쉽게 믿게 되었습니다.
+          </p>
+          <p>
+            현실의 AI도 마찬가지입니다. 알고리즘은 복잡하고 불투명하며, 그 안에는 인간
+            사회의 고정관념과 편향이 숨어 있을 수 있습니다.
+          </p>
+          <p>
+            인공지능은 사람을 이해하는 것이 아니라 패턴을 분류합니다. 그래서 우리는
+            인공지능의 판단을 비판적으로 바라봐야 합니다.
+          </p>
+          <button id="restartButton" class="restart-button" type="button">다시 체험하기</button>
+        </div>
+      </section>
+
+      <p class="safety-note">
+        ※ 실제 감정·위험도·인종·성별 분석을 수행하지 않습니다. 카메라 영상은 저장되거나
+        업로드되지 않습니다.
+      </p>
+    </main>
+
+    <canvas id="analysisCanvas" width="96" height="72" aria-hidden="true"></canvas>
+    <script src="/bias.js?v=20260512-fun-type" defer></script>
+  </body>
+</html>
