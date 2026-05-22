@@ -174,10 +174,14 @@ function renderStation() {
   if (!station) return;
 
   els.stationKicker.textContent = station.kicker;
-  els.stationTitle.textContent = station.title;
-  els.stationMission.textContent = station.mission;
+  els.stationTitle.textContent =
+    station.id === "timer" && state.mode === "hard" ? "2.2초 뒤 사라지는 주문 키오스크" : station.title;
+  els.stationMission.textContent =
+    station.id === "timer" && state.mode === "hard"
+      ? "새우버거, 콘샐러드, 레몬에이드(M), 얼음 중간, 쿠폰만 사용까지 완료해 보세요."
+      : station.mission;
   els.insightText.textContent = station.insight;
-  els.challengeMode.classList.toggle("is-active", state.mode === "challenge");
+  els.challengeMode.classList.toggle("is-active", state.mode === "challenge" || state.mode === "hard");
   els.kindMode.classList.toggle("is-active", state.mode === "kind");
   renderBarrierLog();
 
@@ -246,11 +250,12 @@ function celebrationParticles() {
   }).join("");
 }
 
-function showCompletion(root, message) {
+function showCompletion(root, message, options = {}) {
   const station = currentStation();
   const stationRecords = state.barriers
     .filter((entry) => entry.stationId === station.id && !entry.success)
     .slice(0, 3);
+  const canTryHarder = station.id === "timer" && state.mode === "challenge" && !options.autoReturn;
   const completionRecord = stationRecords.length
     ? `
       <div class="completion-record">
@@ -259,6 +264,18 @@ function showCompletion(root, message) {
       </div>
     `
     : "";
+  const completionActions = options.autoReturn
+    ? `<p class="auto-return-note">잠시 뒤 키오스크 선택 화면으로 돌아갑니다.</p>`
+    : `
+        <div class="completion-actions">
+          <button class="next-button" type="button" data-return-home="true">키오스크 선택으로</button>
+          ${
+            canTryHarder
+              ? `<button class="next-button harder-button" type="button" data-timer-hard="true">더 어려운 모드</button>`
+              : ""
+          }
+        </div>
+      `;
 
   root.innerHTML = `
     <div class="kiosk-screen completion-screen">
@@ -266,16 +283,25 @@ function showCompletion(root, message) {
         ${celebrationParticles()}
       </div>
       <div class="completion-panel">
-        <p class="completion-kicker">미션 해결</p>
-        <h3>${station.title} 완료</h3>
+        <p class="completion-kicker">${options.kicker || "미션 해결"}</p>
+        <h3>${options.title || `${station.title} 완료`}</h3>
         <p>${message}</p>
         <p class="completion-lesson">마무리: ${station.closing}</p>
         ${completionRecord}
-        <button class="next-button" type="button">키오스크 선택으로</button>
+        ${completionActions}
       </div>
     </div>
   `;
-  root.querySelector(".next-button").addEventListener("click", returnHome);
+  root.querySelector("[data-return-home]")?.addEventListener("click", returnHome);
+  root.querySelector("[data-timer-hard]")?.addEventListener("click", () => {
+    state.mode = "hard";
+    state.kioskStarted = true;
+    renderStation();
+  });
+  if (options.autoReturn) {
+    const autoReturnTimer = window.setTimeout(returnHome, 1800);
+    addCleanup(() => window.clearTimeout(autoReturnTimer));
+  }
 }
 
 function renderBarrierLog() {
@@ -651,13 +677,42 @@ function renderKioskStart(root, station, mode) {
 
 function renderTimerStation(root, mode) {
   const isKind = mode === "kind";
+  const isHard = mode === "hard";
+  const timeLimit = isHard ? 2.2 : 3;
+  const target = isHard
+    ? {
+        menu: "shrimp",
+        side: "corn",
+        drink: "ade",
+        ice: "ice-normal",
+        payment: "coupon",
+        menuLabel: "새우버거",
+        sideLabel: "콘샐러드",
+        drinkLabel: "레몬에이드(M)",
+        iceLabel: "얼음 중간",
+        paymentLabel: "쿠폰만 사용"
+      }
+    : {
+        menu: "cheese-set",
+        side: "fries",
+        drink: "cola",
+        ice: "ice-less",
+        payment: "card",
+        menuLabel: "치즈버거",
+        sideLabel: "감자튀김",
+        drinkLabel: "콜라(M)",
+        iceLabel: "얼음 적게",
+        paymentLabel: "카드 결제"
+      };
+  const targetSummary = `${target.menuLabel}, ${target.sideLabel}, ${target.drinkLabel}, ${target.iceLabel}, ${target.paymentLabel}`;
+  const timeLabel = isHard ? "2.2초" : "3초";
   const steps = [
     {
       label: "메뉴",
       key: "menu",
       title: "메뉴를 골라 주세요",
-      subtitle: "치즈버거를 선택하면 다음 단계로 이동합니다.",
-      correct: "cheese-set",
+      subtitle: `${target.menuLabel}를 선택하면 다음 단계로 이동합니다.`,
+      correct: target.menu,
       items: [
         { id: "bulgogi", label: "불고기버거", desc: "달콤한 간장 소스", price: 5200, visual: "burger" },
         { id: "cheese-set", label: "치즈버거", desc: "기본 버거", price: 5200, visual: "burger" },
@@ -669,8 +724,8 @@ function renderTimerStation(root, mode) {
       label: "사이드",
       key: "side",
       title: "사이드를 선택해 주세요",
-      subtitle: "세트에 포함할 사이드를 고릅니다.",
-      correct: "fries",
+      subtitle: `세트에 포함할 ${target.sideLabel}를 고릅니다.`,
+      correct: target.side,
       items: [
         { id: "salad", label: "샐러드", desc: "상큼한 채소", price: 0, visual: "salad" },
         { id: "corn", label: "콘샐러드", desc: "달콤한 옥수수", price: 0, visual: "salad" },
@@ -682,8 +737,8 @@ function renderTimerStation(root, mode) {
       label: "음료",
       key: "drink",
       title: "음료를 선택해 주세요",
-      subtitle: "세트에 포함할 콜라(M)를 고릅니다.",
-      correct: "cola",
+      subtitle: `세트에 포함할 ${target.drinkLabel}를 고릅니다.`,
+      correct: target.drink,
       items: [
         { id: "cola", label: "콜라(M)", desc: "기본 탄산음료", price: 0, visual: "cup" },
         { id: "zero-cola", label: "제로콜라(M)", desc: "당류 0g", price: 0, visual: "cup" },
@@ -695,8 +750,8 @@ function renderTimerStation(root, mode) {
       label: "얼음",
       key: "ice",
       title: "얼음 양을 선택해 주세요",
-      subtitle: "콜라(M)에 넣을 얼음 양을 고릅니다.",
-      correct: "ice-less",
+      subtitle: `${target.drinkLabel}에 넣을 ${target.iceLabel}을 고릅니다.`,
+      correct: target.ice,
       items: [
         { id: "ice-none", label: "얼음 없음", desc: "얼음을 넣지 않음", price: 0, mark: "없" },
         { id: "ice-less", label: "얼음 적게", desc: "조금만 넣기", price: 0, mark: "적" },
@@ -708,8 +763,8 @@ function renderTimerStation(root, mode) {
       label: "결제",
       key: "payment",
       title: "결제 방법을 선택해 주세요",
-      subtitle: "카드 결제를 선택하면 주문이 완료됩니다.",
-      correct: "card",
+      subtitle: `${target.paymentLabel}을 선택하면 주문이 완료됩니다.`,
+      correct: target.payment,
       items: [
         { id: "cash", label: "현금 결제", desc: "직원 호출 필요", price: 0, mark: "현" },
         { id: "card", label: "카드 결제", desc: "카드 투입구 사용", price: 0, mark: "카" },
@@ -721,7 +776,7 @@ function renderTimerStation(root, mode) {
 
   const order = {};
   let step = 0;
-  let timeLeft = isKind ? 0 : 3;
+  let timeLeft = isKind ? 0 : timeLimit;
   let timer = 0;
   let disposed = false;
 
@@ -737,13 +792,13 @@ function renderTimerStation(root, mode) {
       title: current.title,
       subtitle: current.subtitle,
       mode,
-      status: isKind ? "천천히 주문" : "자동 초기화",
+      status: isKind ? "천천히 주문" : isHard ? "2.2초 자동 초기화" : "자동 초기화",
       timer: isKind ? "" : `${timeLeft.toFixed(1)}초`,
       steps: steps.map((item) => item.label),
       activeStep: step,
       guide: isKind
         ? "시간 제한 없이 치즈버거, 감자튀김, 콜라(M), 얼음 적게, 카드 결제를 순서대로 고릅니다."
-        : "3초 안에 치즈버거, 감자튀김, 콜라(M), 얼음 적게, 카드 결제를 순서대로 고릅니다.",
+        : `${timeLabel} 안에 ${targetSummary} 순서로 고릅니다.`,
       cartItems: selectedCartItems(order),
       className: isKind ? "friendly-kiosk" : "pressure-kiosk",
       body: `
@@ -770,12 +825,21 @@ function renderTimerStation(root, mode) {
         order[current.key] = selected;
         window.clearInterval(timer);
         if (step === steps.length - 1) {
-          completeStation("짧은 제한 시간은 주문을 포기하게 만들 수 있습니다.");
-          showCompletion(root, "실제 주문 화면에서도 충분한 시간과 이전 단계 버튼이 필요합니다.");
+          if (isHard) {
+            completeStation("더 어려운 2.2초 미션까지 완료했습니다.");
+            showCompletion(root, "2.2초 안에 더 복잡한 주문 조건까지 완료했습니다. 잠시 뒤 키오스크 선택 화면으로 돌아갑니다.", {
+              autoReturn: true,
+              kicker: "최종 미션 해결",
+              title: "더 어려운 모드 완료"
+            });
+          } else {
+            completeStation("짧은 제한 시간은 주문을 포기하게 만들 수 있습니다.");
+            showCompletion(root, "실제 주문 화면에서도 충분한 시간과 이전 단계 버튼이 필요합니다.");
+          }
           return;
         }
         step += 1;
-        timeLeft = 3;
+        timeLeft = timeLimit;
         draw();
         if (!isKind) startClock();
       });
@@ -798,7 +862,7 @@ function renderTimerStation(root, mode) {
         recordBarrier("생각할 시간이 부족해 주문 화면이 처음으로 돌아갔습니다.");
         step = 0;
         Object.keys(order).forEach((key) => delete order[key]);
-        timeLeft = 3;
+        timeLeft = timeLimit;
         draw();
         startClock();
       }

@@ -764,12 +764,32 @@ button {
   font-weight: 800;
 }
 
+.completion-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
 .next-button {
   justify-self: center;
   min-width: 150px;
   min-height: 50px;
   padding: 10px 16px;
   background: var(--sun);
+}
+
+.harder-button {
+  background: #ff8fb3;
+}
+
+.auto-return-note {
+  justify-self: center;
+  padding: 12px 14px;
+  border: 3px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--ink);
 }
 
 .kiosk-stage {
